@@ -20,6 +20,7 @@ import {
   formatNumber,
   formatPace,
 } from "@/lib/workout";
+import { demoWorkouts } from "@/constants/demo";
 
 type FilterPeriod = WorkoutDashboardFilters["period"];
 type FilterWorkoutType = WorkoutDashboardFilters["workOutType"];
@@ -42,6 +43,7 @@ const HISTORY_PAGE_SIZE = 20;
 const MAX_FIT_UPLOAD_COUNT = 10;
 
 type WorkoutHistoryDashboardProps = {
+  demoMode?: boolean;
   onRequestFeedback?: (workout: WorkoutDetail) => void | Promise<void>;
 };
 const MAX_RECENT_DISTANCE_BARS = 7;
@@ -120,6 +122,103 @@ function tierLabel(tier: FeedbackRequest["tier"]) {
 
 function sourceLabel(source: FeedbackRequest["inputSource"]) {
   return source === "FIT_FILE" ? "FIT" : "직접 입력";
+}
+
+function isInPeriod(workout: FeedbackRequest, filters: WorkoutDashboardFilters) {
+  if (filters.period === "ALL") return true;
+
+  const startedAt = new Date(workout.startedAt);
+  const now = new Date();
+
+  if (filters.period === "custom") {
+    const start = filters.startDate ? new Date(filters.startDate) : null;
+    const end = filters.endDate ? new Date(filters.endDate) : null;
+    if (start && startedAt < start) return false;
+    if (end) {
+      const endOfDay = new Date(end);
+      endOfDay.setHours(23, 59, 59, 999);
+      if (startedAt > endOfDay) return false;
+    }
+    return true;
+  }
+
+  const days = Number(filters.period.replace("d", ""));
+  const cutoff = new Date(now);
+  cutoff.setDate(now.getDate() - days);
+  return startedAt >= cutoff;
+}
+
+function demoHistoryItems(filters: WorkoutDashboardFilters) {
+  return demoWorkouts
+    .map<WorkoutHistoryItem>((workout, index) => ({
+      ...workout,
+      workoutId: index + 1,
+      feedbackCount: index % 2 === 0 ? 2 : 1,
+    }))
+    .filter((workout) => {
+      const typeMatches =
+        filters.workOutType === "ALL" ||
+        workout.workOutType === filters.workOutType;
+      return typeMatches && isInPeriod(workout, filters);
+    })
+    .sort(
+      (left, right) =>
+        new Date(right.startedAt).getTime() - new Date(left.startedAt).getTime(),
+    );
+}
+
+function demoDashboardSummary(
+  items: WorkoutHistoryItem[],
+): WorkoutDashboardSummary {
+  const runningItems = items.filter((item) => item.workOutType === "RUNNING");
+  const cyclingItems = items.filter((item) => item.workOutType === "CYCLING");
+  const totalDistance = items.reduce((sum, item) => sum + (item.distance ?? 0), 0);
+  const totalMovingTime = items.reduce(
+    (sum, item) => sum + (item.movingTime ?? 0),
+    0,
+  );
+  const heartRates = items.flatMap((item) =>
+    item.avgHeartRate == null ? [] : [item.avgHeartRate],
+  );
+  const runningPaces = runningItems.flatMap((item) =>
+    item.avgPace == null ? [] : [item.avgPace],
+  );
+  const cyclingPowers = cyclingItems.flatMap((item) =>
+    item.avgPower == null ? [] : [item.avgPower],
+  );
+  const average = (values: number[]) =>
+    values.length === 0
+      ? null
+      : values.reduce((sum, value) => sum + value, 0) / values.length;
+
+  return {
+    totalWorkoutCount: items.length,
+    totalDistance,
+    totalMovingTime,
+    totalFeedbackCount: items.reduce((sum, item) => sum + item.feedbackCount, 0),
+    runningCount: runningItems.length,
+    cyclingCount: cyclingItems.length,
+    runningDistance: runningItems.reduce(
+      (sum, item) => sum + (item.distance ?? 0),
+      0,
+    ),
+    cyclingDistance: cyclingItems.reduce(
+      (sum, item) => sum + (item.distance ?? 0),
+      0,
+    ),
+    avgHeartRate: average(heartRates),
+    totalElevGain: items.reduce((sum, item) => sum + (item.elevGain ?? 0), 0),
+    avgRunningPace: average(runningPaces),
+    avgCyclingPower: average(cyclingPowers),
+    recentDistances: items.slice(0, MAX_RECENT_DISTANCE_BARS).map((item) => ({
+      label: item.title ?? workoutTypeLabel(item.workOutType),
+      startedAt: item.startedAt,
+      distance: item.distance,
+      movingTime: item.movingTime,
+      avgHeartRate: item.avgHeartRate,
+      elevGain: item.elevGain,
+    })),
+  };
 }
 
 function formatDurationMinutes(minutes: number) {
@@ -647,6 +746,7 @@ function HistoryMetric({
 }
 
 export function WorkoutHistoryDashboard({
+  demoMode = false,
   onRequestFeedback,
 }: WorkoutHistoryDashboardProps) {
   const [filterOpen, setFilterOpen] = useState(false);
@@ -664,7 +764,6 @@ export function WorkoutHistoryDashboard({
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedFitFiles, setSelectedFitFiles] = useState<File[]>([]);
   const [savingFitFiles, setSavingFitFiles] = useState(false);
-  const historyListRef = useRef<HTMLDivElement | null>(null);
   const historyCardRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const followContainerRef = useRef<HTMLDivElement | null>(null);
@@ -714,6 +813,10 @@ export function WorkoutHistoryDashboard({
 
   async function handleRequestFeedback(item: WorkoutHistoryItem) {
     if (!onRequestFeedback) return;
+    if (demoMode) {
+      toast.info("로그인 후 실제 운동 기록으로 피드백을 받을 수 있습니다.");
+      return;
+    }
 
     const itemKey = `${item.workOutType}-${item.workoutId}`;
     setFeedbackLoadingKey(itemKey);
@@ -825,16 +928,24 @@ export function WorkoutHistoryDashboard({
     setHistoryItems([]);
     setNextCursor(null);
     setHasNext(false);
-    historyListRef.current?.scrollTo({ top: 0 });
   }
 
   async function refreshDashboard() {
+    if (demoMode) {
+      const items = demoHistoryItems(filters);
+      setSummary(demoDashboardSummary(items));
+      setHistoryItems(items);
+      setNextCursor(null);
+      setHasNext(false);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setAnimateTrendCharts(false);
     setHistoryItems([]);
     setNextCursor(null);
     setHasNext(false);
-    historyListRef.current?.scrollTo({ top: 0 });
 
     try {
       const [summaryResult, historyResult] = await Promise.all([
@@ -896,6 +1007,10 @@ export function WorkoutHistoryDashboard({
   }
 
   async function handleSaveFitFiles() {
+    if (demoMode) {
+      toast.info("로그인 후 FIT 파일을 저장할 수 있습니다.");
+      return;
+    }
     if (selectedFitFiles.length === 0 || savingFitFiles) return;
 
     setSavingFitFiles(true);
@@ -922,6 +1037,22 @@ export function WorkoutHistoryDashboard({
 
   useEffect(() => {
     let active = true;
+
+    if (demoMode) {
+      const timerId = window.setTimeout(() => {
+        if (!active) return;
+        const items = demoHistoryItems(filters);
+        setSummary(demoDashboardSummary(items));
+        setHistoryItems(items);
+        setNextCursor(null);
+        setHasNext(false);
+        setLoading(false);
+      }, 0);
+      return () => {
+        active = false;
+        window.clearTimeout(timerId);
+      };
+    }
 
     Promise.all([
       getWorkoutDashboardSummary(filters),
@@ -951,7 +1082,7 @@ export function WorkoutHistoryDashboard({
     return () => {
       active = false;
     };
-  }, [filters]);
+  }, [demoMode, filters]);
 
   useEffect(() => {
     if (!summary || loading) return;
@@ -967,7 +1098,7 @@ export function WorkoutHistoryDashboard({
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    const historyList = historyListRef.current;
+    if (demoMode) return;
     if (!sentinel || loading || loadingMore || !hasNext) return;
 
     const observer = new IntersectionObserver(
@@ -994,12 +1125,12 @@ export function WorkoutHistoryDashboard({
           })
           .finally(() => setLoadingMore(false));
       },
-      { root: historyList, rootMargin: "160px" },
+      { rootMargin: "160px" },
     );
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [filters, hasNext, loading, loadingMore, nextCursor]);
+  }, [demoMode, filters, hasNext, loading, loadingMore, nextCursor]);
 
   useEffect(() => {
     return () => cancelHistoryActionClose();
@@ -1249,18 +1380,31 @@ export function WorkoutHistoryDashboard({
                     <h2 className="text-base font-semibold text-[#111827]">
                       나의 운동 기록 목록
                     </h2>
+                    {demoMode ? (
+                      <span className="inline-flex h-6 items-center rounded-md bg-[#fff7ed] px-2 text-[11px] font-semibold text-[#c2410c]">
+                        체험용 데이터
+                      </span>
+                    ) : null}
                     <span className="inline-flex h-6 items-center rounded-md bg-[#f3f4f6] px-2 text-[11px] font-semibold text-[#4b5563]">
                       전체 {summary?.totalWorkoutCount ?? 0}개
                     </span>
                   </div>
                   <p className="mt-1 text-xs text-[#6b7280]">
-                    저장된 운동 기록과 피드백 횟수를 한눈에 확인할 수 있습니다.
+                    {demoMode
+                      ? "로그인 전에는 임시 운동 기록으로 화면을 미리 확인할 수 있습니다."
+                      : "저장된 운동 기록과 피드백 횟수를 한눈에 확인할 수 있습니다."}
                   </p>
                 </div>
                 <button
                   className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#2563eb] px-3 text-sm font-semibold text-white transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={savingFitFiles}
-                  onClick={() => setUploadDialogOpen(true)}
+                  onClick={() => {
+                    if (demoMode) {
+                      toast.info("로그인 후 FIT 파일을 저장할 수 있습니다.");
+                      return;
+                    }
+                    setUploadDialogOpen(true);
+                  }}
                   type="button"
                 >
                   <Icon name="upload_file" className="h-4 w-4" />
@@ -1268,11 +1412,7 @@ export function WorkoutHistoryDashboard({
                 </button>
               </div>
 
-              <div
-                className="h-[720px] overflow-y-auto overscroll-contain divide-y divide-black/10"
-                onScroll={() => setHoveredHistoryAction(null)}
-                ref={historyListRef}
-              >
+              <div className="divide-y divide-black/10">
                 {loading ? (
                   Array.from({ length: 4 }, (_, index) => (
                     <div

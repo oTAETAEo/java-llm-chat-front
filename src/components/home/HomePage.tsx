@@ -19,7 +19,6 @@ import {
   getFeedbackRoomWorkouts,
   getPinnedFeedbackRooms,
   getRecentFeedbackRooms,
-  isNetworkError,
   logout,
   pinFeedbackRoom,
   reissueToken,
@@ -743,12 +742,9 @@ export function HomePage({
         setUser(currentUser);
         resetWorkoutDraftState();
       })
-      .catch((error) => {
+      .catch(() => {
         if (!active) return;
         setUser(null);
-        if (isNetworkError(error)) {
-          toast.error(error.message);
-        }
       })
       .finally(() => {
         if (active) setAuthChecked(true);
@@ -1051,6 +1047,7 @@ export function HomePage({
               ref={workoutHistoryScrollRef}
             >
               <WorkoutHistoryDashboard
+                demoMode={!user}
                 onRequestFeedback={handleWorkoutHistoryFeedback}
               />
             </div>

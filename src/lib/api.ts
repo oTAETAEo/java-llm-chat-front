@@ -150,7 +150,7 @@ type ApiErrorResponse = {
 
 const NETWORK_ERROR_MESSAGE =
   "일시적으로 연결이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.";
-const API_REQUEST_TIMEOUT_MS = 4000;
+const API_REQUEST_TIMEOUT_MS = 2500;
 
 export function isNetworkError(error: unknown) {
   return error instanceof Error && error.message === NETWORK_ERROR_MESSAGE;
