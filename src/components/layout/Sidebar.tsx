@@ -314,9 +314,13 @@ export function Sidebar({
             ? "w-[min(82vw,280px)] opacity-100 lg:w-[260px]"
             : "pointer-events-none w-0 opacity-0"
         }`}
+        data-sidebar-shell
         ref={sidebarMenuRef}
       >
-      <div className="flex h-full flex-1 flex-col overflow-hidden whitespace-nowrap">
+      <div
+        className="flex h-full flex-1 flex-col overflow-hidden whitespace-nowrap"
+        data-sidebar-panel
+      >
         <div className="flex items-center justify-between p-4 pb-2">
           <div className="w-full" />
           <div className="flex gap-1 text-on-surface-variant">
@@ -392,7 +396,7 @@ export function Sidebar({
         </div>
       </div>
 
-      <div className="bg-white p-3 dark:bg-[#23272a]">
+      <div className="bg-white p-3 dark:bg-[#23272a]" data-sidebar-panel>
         {authPending ? (
           <div
             aria-label="로그인 상태 확인 중"
@@ -423,7 +427,7 @@ export function Sidebar({
               </div>
             ) : null}
 
-            <div className="flex w-full items-center gap-3 rounded-2xl bg-[#f4f4f5] p-3 transition-colors hover:bg-[#e4e4e7] dark:bg-[#333333] dark:hover:bg-[#333333]">
+            <div className="flex w-full items-center gap-3 rounded-2xl bg-[#f4f4f5] p-3 transition-colors hover:bg-[#e4e4e7] dark:bg-[#333333] dark:hover:bg-[#333333]" data-sidebar-profile-card>
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1d1d1f] text-sm font-medium text-white">
                 {user.nickname.slice(0, 2).toUpperCase()}
               </div>

@@ -598,6 +598,15 @@ body {
   background-color: var(--theme-onyx) !important;
 }
 
+.dark [data-sidebar-shell],
+.dark [data-sidebar-panel] {
+  background-color: var(--theme-onyx) !important;
+}
+
+.dark [data-sidebar-profile-card] {
+  background-color: var(--theme-muted-ink) !important;
+}
+
 .dark aside [class~="bg-white"],
 .dark aside [class~="bg-white/95"],
 .dark aside [class~="bg-white/90"],
