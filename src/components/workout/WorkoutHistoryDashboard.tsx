@@ -1714,7 +1714,7 @@ export function WorkoutHistoryDashboard({
 
                   return (
                     <div
-                      className="group relative flex w-full flex-col gap-4 px-5 py-4 text-left transition hover:bg-[#f9fafb] lg:flex-row lg:items-center lg:justify-between"
+                      className="group relative flex w-full flex-col gap-4 px-5 py-4 text-left transition hover:bg-[#f9fafb] dark:hover:bg-[#333333] lg:flex-row lg:items-center lg:justify-between"
                       key={itemKey}
                       onFocus={(event) => {
                         showHistoryAction(itemKey, item, event.currentTarget);
