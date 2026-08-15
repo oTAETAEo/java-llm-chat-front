@@ -36,6 +36,7 @@ function SidebarButton({
 function RoomRow({
   room,
   active,
+  generationStatus,
   onRoomClick,
   onTogglePin,
   onRename,
@@ -46,6 +47,7 @@ function RoomRow({
 }: {
   room: FeedbackRoomSummary;
   active: boolean;
+  generationStatus?: "generating" | "completed";
   onRoomClick: (roomId: string) => void;
   onTogglePin: (room: FeedbackRoomSummary) => void;
   onRename: (room: FeedbackRoomSummary, title: string) => void;
@@ -111,7 +113,22 @@ function RoomRow({
             name={room.pinned ? "keep" : "chat_bubble"}
             className="h-[18px] w-[18px] shrink-0 text-outline"
           />
-          <span className="truncate text-sm">{room.title}</span>
+          <span className="min-w-0 flex-1 truncate text-sm">{room.title}</span>
+          {generationStatus === "generating" ? (
+            <span
+              aria-label="피드백 생성 중"
+              className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-[#0066cc]"
+            >
+              <span className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-[#0066cc]/25 border-t-[#0066cc]" />
+              생성 중
+            </span>
+          ) : null}
+          {generationStatus === "completed" ? (
+            <span
+              aria-label="새 피드백 도착"
+              className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#0066cc]"
+            />
+          ) : null}
         </button>
       )}
       <button
@@ -186,6 +203,8 @@ export function Sidebar({
   recentRooms = [],
   activeRoomId,
   workoutHistoryActive = false,
+  generatingRoomIds = [],
+  completedRoomIds = [],
   onRoomClick,
   onTogglePinRoom,
   onRenameRoom,
@@ -202,6 +221,8 @@ export function Sidebar({
   recentRooms?: FeedbackRoomSummary[];
   activeRoomId?: string;
   workoutHistoryActive?: boolean;
+  generatingRoomIds?: string[];
+  completedRoomIds?: string[];
   onRoomClick?: (roomId: string) => void;
   onTogglePinRoom?: (room: FeedbackRoomSummary) => void;
   onRenameRoom?: (room: FeedbackRoomSummary, title: string) => void;
@@ -246,6 +267,13 @@ export function Sidebar({
   const renderRoom = (room: FeedbackRoomSummary) => (
     <RoomRow
       active={room.roomId === activeRoomId}
+      generationStatus={
+        generatingRoomIds.includes(room.roomId)
+          ? "generating"
+          : completedRoomIds.includes(room.roomId)
+            ? "completed"
+            : undefined
+      }
       key={room.roomId}
       menuOpen={openMenuId === `room:${room.roomId}`}
       onDelete={(target) => onDeleteRoom?.(target)}

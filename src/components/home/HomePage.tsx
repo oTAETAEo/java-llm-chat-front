@@ -21,6 +21,7 @@ import {
   getRecentFeedbackRooms,
   logout,
   pinFeedbackRoom,
+  isNetworkError,
   reissueToken,
   renameFeedbackRoom,
   requestFeedbackStream,
@@ -73,10 +74,23 @@ const SIDEBAR_BREAKPOINT = 1024;
 const AUTO_SCROLL_BOTTOM_THRESHOLD = 96;
 const ROOM_SKELETON_MIN_DURATION_MS = 400;
 const GENERATING_FEEDBACK_SCROLL_OFFSET = 120;
+const FEEDBACK_RECONCILE_ATTEMPTS = 8;
+const FEEDBACK_RECONCILE_DELAY_MS = 1000;
 type MainView = "chat" | "workoutHistory";
+type FeedbackGenerationStatus = "generating" | "completed";
+type FeedbackGenerationState = {
+  status: FeedbackGenerationStatus;
+  text: string;
+};
 
 function resolveErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
 }
 
 function ChatRoomSkeleton() {
@@ -153,6 +167,9 @@ export function HomePage({
     [],
   );
   const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackGenerations, setFeedbackGenerations] = useState<
+    Record<string, FeedbackGenerationState>
+  >({});
   const [workoutInputError, setWorkoutInputError] = useState("");
   const [generatingFeedback, setGeneratingFeedback] = useState(false);
   const [loadingRoomId, setLoadingRoomId] = useState<string | null>(null);
@@ -178,6 +195,70 @@ export function HomePage({
   const [demoStep, setDemoStep] = useState(0);
   const [demoFeedbackStream, setDemoFeedbackStream] = useState("");
   const [demoStreaming, setDemoStreaming] = useState(false);
+  const mainViewRef = useRef(mainView);
+  const activeRoomIdRef = useRef(activeRoomId);
+  const feedbackGenerationsRef = useRef(feedbackGenerations);
+
+  const activeRoomGeneration = activeRoomId
+    ? feedbackGenerations[activeRoomId]
+    : undefined;
+  const activeFeedbackText =
+    activeRoomGeneration?.status === "generating"
+      ? activeRoomGeneration.text
+      : feedbackText;
+  const activeGeneratingFeedback =
+    activeRoomGeneration?.status === "generating" ||
+    (!activeRoomId && generatingFeedback);
+  const generatingFeedbackRoomIds = Object.entries(feedbackGenerations)
+    .filter(([, generation]) => generation.status === "generating")
+    .map(([roomId]) => roomId);
+  const completedFeedbackRoomIds = Object.entries(feedbackGenerations)
+    .filter(([, generation]) => generation.status === "completed")
+    .map(([roomId]) => roomId);
+
+  function updateFeedbackGenerations(
+    updater: (
+      current: Record<string, FeedbackGenerationState>,
+    ) => Record<string, FeedbackGenerationState>,
+  ) {
+    setFeedbackGenerations((current) => {
+      const next = updater(current);
+      feedbackGenerationsRef.current = next;
+      return next;
+    });
+  }
+
+  function setFeedbackGeneration(
+    roomId: string,
+    generation: FeedbackGenerationState,
+  ) {
+    updateFeedbackGenerations((current) => ({
+      ...current,
+      [roomId]: generation,
+    }));
+  }
+
+  function clearFeedbackGeneration(roomId: string) {
+    updateFeedbackGenerations((current) => {
+      if (!current[roomId]) return current;
+
+      const next = { ...current };
+      delete next[roomId];
+      return next;
+    });
+  }
+
+  function isRoomVisible(roomId: string) {
+    return mainViewRef.current === "chat" && activeRoomIdRef.current === roomId;
+  }
+
+  useEffect(() => {
+    mainViewRef.current = mainView;
+  }, [mainView]);
+
+  useEffect(() => {
+    activeRoomIdRef.current = activeRoomId;
+  }, [activeRoomId]);
 
   function openAuthDialog(mode: AuthMode) {
     setAuthMode(mode);
@@ -413,10 +494,13 @@ export function HomePage({
     const room = await createFeedbackRoom();
     const roomId = room.roomId;
 
+    mainViewRef.current = "chat";
     setMainView("chat");
+    activeRoomIdRef.current = roomId;
     setActiveRoomId(roomId);
     setPersistedMessages([]);
     setRoomWorkouts([]);
+    setLoadingRoomId(null);
     setWorkOutType(workout.workOutType);
     setTier(workout.tier);
     setWorkoutForm(workoutToForm(workout));
@@ -446,7 +530,57 @@ export function HomePage({
     setWorkoutInputError("");
   }
 
+  async function refreshFeedbackRoomState(roomId: string) {
+    const [room, workouts, rooms, pinned] = await Promise.all([
+      getFeedbackRoom(roomId),
+      getFeedbackRoomWorkouts(roomId),
+      getRecentFeedbackRooms(),
+      getPinnedFeedbackRooms(),
+    ]);
+
+    if (isRoomVisible(roomId)) {
+      setPersistedMessages(room.messages);
+      setRoomWorkouts(workouts);
+      setFeedbackText("");
+    }
+    setRecentRooms(rooms);
+    setPinnedRooms(pinned);
+    return room;
+  }
+
+  async function reconcileSavedAssistantMessage(
+    roomId: string,
+    previousAssistantMessageIds: Set<number>,
+  ) {
+    for (let attempt = 0; attempt < FEEDBACK_RECONCILE_ATTEMPTS; attempt += 1) {
+      if (attempt > 0) {
+        await wait(FEEDBACK_RECONCILE_DELAY_MS);
+      }
+
+      try {
+        const room = await refreshFeedbackRoomState(roomId);
+        const hasNewAssistantMessage = room.messages.some((message) => {
+          return (
+            message.role === "ASSISTANT" &&
+            !previousAssistantMessageIds.has(message.messageId)
+          );
+        });
+        if (hasNewAssistantMessage) {
+          if (isRoomVisible(roomId)) {
+            scrollChatToBottom("smooth");
+          }
+          return true;
+        }
+      } catch {
+        // Keep checking briefly; the backend may still be saving the generated answer.
+      }
+    }
+
+    return false;
+  }
+
   async function handleGenerateFeedback() {
+    mainViewRef.current = "chat";
     setMainView("chat");
     const payload =
       draftWorkout ?? buildFeedbackRequest(workOutType, tier, workoutForm);
@@ -481,8 +615,16 @@ export function HomePage({
     setWorkoutInputError("");
     setGeneratingFeedback(true);
 
+    let feedbackRoomId = activeRoomId;
+    const previousAssistantMessageIds = new Set(
+      persistedMessages
+        .filter((message) => message.role === "ASSISTANT")
+        .map((message) => message.messageId),
+    );
+
     try {
       const roomId = activeRoomId ?? (await createFeedbackRoom()).roomId;
+      feedbackRoomId = roomId;
       if (!activeRoomId) {
         const newDraft = window.localStorage.getItem(
           workoutDraftStorageKey(undefined),
@@ -492,31 +634,64 @@ export function HomePage({
           window.localStorage.removeItem(workoutDraftStorageKey(undefined));
           workoutDraftKeyRef.current = workoutDraftStorageKey(roomId);
         }
+        activeRoomIdRef.current = roomId;
         setActiveRoomId(roomId);
         replaceUrl(`/c/${roomId}`);
       }
+      setFeedbackGeneration(roomId, { status: "generating", text: "" });
 
       await requestFeedbackStream(
         payload,
         (chunk) => {
-          setFeedbackText((current) => `${current}${chunk}`);
+          updateFeedbackGenerations((current) => {
+            const currentGeneration = current[roomId];
+
+            return {
+              ...current,
+              [roomId]: {
+                status: "generating",
+                text: `${currentGeneration?.text ?? ""}${chunk}`,
+              },
+            };
+          });
+          if (isRoomVisible(roomId)) {
+            setFeedbackText((current) => `${current}${chunk}`);
+          }
         },
         roomId,
         fitPreviewSamples,
       );
 
-      const [room, workouts, rooms] = await Promise.all([
-        getFeedbackRoom(roomId),
-        getFeedbackRoomWorkouts(roomId),
-        getRecentFeedbackRooms(),
-      ]);
-      setPersistedMessages(room.messages);
-      setRoomWorkouts(workouts);
-      setFeedbackText("");
-      setRecentRooms(rooms);
-      setPinnedRooms(await getPinnedFeedbackRooms());
-      scrollChatToBottom("smooth");
+      await refreshFeedbackRoomState(roomId);
+      if (isRoomVisible(roomId)) {
+        clearFeedbackGeneration(roomId);
+        scrollChatToBottom("smooth");
+      } else {
+        setFeedbackGeneration(roomId, { status: "completed", text: "" });
+      }
     } catch (error) {
+      if (
+        feedbackRoomId &&
+        isNetworkError(error) &&
+        (await reconcileSavedAssistantMessage(
+          feedbackRoomId,
+          previousAssistantMessageIds,
+        ))
+      ) {
+        if (isRoomVisible(feedbackRoomId)) {
+          clearFeedbackGeneration(feedbackRoomId);
+        } else {
+          setFeedbackGeneration(feedbackRoomId, {
+            status: "completed",
+            text: "",
+          });
+        }
+        return;
+      }
+
+      if (feedbackRoomId) {
+        clearFeedbackGeneration(feedbackRoomId);
+      }
       toast.error(resolveErrorMessage(error, "피드백 생성에 실패했습니다."));
     } finally {
       generatingFeedbackRef.current = false;
@@ -525,16 +700,19 @@ export function HomePage({
   }
 
   function handleNewChat() {
+    mainViewRef.current = "chat";
     setMainView("chat");
     if (!activeRoomId) {
       clearWorkoutDraftStorage(undefined);
     }
     workoutDraftKeyRef.current = workoutDraftStorageKey(undefined);
+    activeRoomIdRef.current = undefined;
     setDraftWorkout(null);
     setFitPreviewSamples(null);
     setActiveRoomId(undefined);
     setPersistedMessages([]);
     setRoomWorkouts([]);
+    setLoadingRoomId(null);
     if (!user) {
       rotateDemoWorkout();
     } else {
@@ -543,6 +721,8 @@ export function HomePage({
       setTier("AMATEUR");
     }
     setFeedbackText("");
+    setFeedbackGenerations({});
+    feedbackGenerationsRef.current = {};
     setWorkoutInputError("");
     setGreetingText("");
     setGreetingStreaming(true);
@@ -556,17 +736,22 @@ export function HomePage({
   }
 
   function clearAuthenticatedChatState() {
+    mainViewRef.current = "chat";
     setMainView("chat");
     clearWorkoutDraftStorage();
     setDraftWorkout(null);
     setFitPreviewSamples(null);
+    activeRoomIdRef.current = undefined;
     setActiveRoomId(undefined);
     setPinnedRooms([]);
     setRecentRooms([]);
     setPersistedMessages([]);
     setRoomWorkouts([]);
+    setLoadingRoomId(null);
     applyDemoWorkout();
     setFeedbackText("");
+    setFeedbackGenerations({});
+    feedbackGenerationsRef.current = {};
     setWorkoutInputError("");
     setDeleteTargetRoom(null);
     setGreetingText("");
@@ -581,6 +766,7 @@ export function HomePage({
   }
 
   function clearDemoStateForAuthenticatedUser(authenticatedUser: AuthUser) {
+    mainViewRef.current = "chat";
     setMainView("chat");
     window.localStorage.removeItem(workoutDraftStorageKey(undefined));
     workoutDraftKeyRef.current = workoutDraftStorageKey(undefined);
@@ -588,6 +774,7 @@ export function HomePage({
     setUser(authenticatedUser);
     setDraftWorkout(null);
     setFitPreviewSamples(null);
+    activeRoomIdRef.current = undefined;
     setActiveRoomId(undefined);
     setPersistedMessages([]);
     setRoomWorkouts([]);
@@ -595,6 +782,8 @@ export function HomePage({
     setWorkOutType("RUNNING");
     setTier("AMATEUR");
     setFeedbackText("");
+    setFeedbackGenerations({});
+    feedbackGenerationsRef.current = {};
     setWorkoutInputError("");
     setDemoStep(0);
     setDemoFeedbackStream("");
@@ -637,7 +826,12 @@ export function HomePage({
   }, [greetingRunId]);
 
   useEffect(() => {
-    if (user || activeRoomId || persistedMessages.length > 0 || feedbackText)
+    if (
+      user ||
+      activeRoomId ||
+      persistedMessages.length > 0 ||
+      activeFeedbackText
+    )
       return;
     if (greetingStreaming) return;
 
@@ -655,7 +849,7 @@ export function HomePage({
     };
   }, [
     activeRoomId,
-    feedbackText,
+    activeFeedbackText,
     greetingStreaming,
     persistedMessages.length,
     user,
@@ -688,18 +882,19 @@ export function HomePage({
       !user &&
       !activeRoomId &&
       persistedMessages.length === 0 &&
-      feedbackText.length === 0 &&
+      activeFeedbackText.length === 0 &&
       demoStep >= 2 &&
       demoStreaming;
     const demoCtaVisible =
       !user &&
       !activeRoomId &&
       persistedMessages.length === 0 &&
-      feedbackText.length === 0 &&
+      activeFeedbackText.length === 0 &&
       demoStep >= 2 &&
       !demoStreaming &&
       demoFeedbackStream.length > 0;
-    if (!generatingFeedback && !demoAutoStreaming && !demoCtaVisible) return;
+    if (!activeGeneratingFeedback && !demoAutoStreaming && !demoCtaVisible)
+      return;
     if (!shouldAutoScrollRef.current) return;
 
     const scrollElement = chatScrollRef.current;
@@ -716,7 +911,7 @@ export function HomePage({
     scrollElement.scrollTo({
       top:
         scrollElement.scrollHeight -
-        (generatingFeedback && !feedbackText
+        (activeGeneratingFeedback && !activeFeedbackText
           ? GENERATING_FEEDBACK_SCROLL_OFFSET
           : 0),
       behavior: "smooth",
@@ -726,8 +921,8 @@ export function HomePage({
     demoFeedbackStream,
     demoStep,
     demoStreaming,
-    feedbackText,
-    generatingFeedback,
+    activeFeedbackText,
+    activeGeneratingFeedback,
     persistedMessages.length,
     draftWorkout,
     user,
@@ -770,22 +965,20 @@ export function HomePage({
   }, [user]);
 
   useEffect(() => {
-    if (
-      mainView !== "chat" ||
-      !user ||
-      !activeRoomId ||
-      generatingFeedbackRef.current
-    ) {
+    if (mainView !== "chat" || !user || !activeRoomId) {
       roomRequestIdRef.current += 1;
       pendingRoomScrollRef.current = false;
-      setLoadingRoomId(null);
       return;
     }
 
     const requestId = roomRequestIdRef.current + 1;
     roomRequestIdRef.current = requestId;
     const roomId = activeRoomId;
-    setLoadingRoomId(roomId);
+    const loadingTimerId = window.setTimeout(() => {
+      if (roomRequestIdRef.current === requestId) {
+        setLoadingRoomId(roomId);
+      }
+    }, 0);
     let skeletonTimerId: number | undefined;
     let resolveMinimumSkeletonDelay: (() => void) | undefined;
     const minimumSkeletonDelay = new Promise<void>((resolve) => {
@@ -822,6 +1015,7 @@ export function HomePage({
     return () => {
       roomRequestIdRef.current += 1;
       pendingRoomScrollRef.current = false;
+      window.clearTimeout(loadingTimerId);
       if (skeletonTimerId !== undefined) {
         window.clearTimeout(skeletonTimerId);
       }
@@ -832,14 +1026,23 @@ export function HomePage({
   useEffect(() => {
     const syncRoomWithUrl = () => {
       if (isWorkoutDashboardPath(window.location.pathname)) {
+        mainViewRef.current = "workoutHistory";
         setMainView("workoutHistory");
         setLoadingRoomId(null);
         return;
       }
 
       const nextRoomId = roomIdFromPath(window.location.pathname);
+      mainViewRef.current = "chat";
       setMainView("chat");
+      activeRoomIdRef.current = nextRoomId;
       setActiveRoomId(nextRoomId);
+      if (
+        nextRoomId &&
+        feedbackGenerationsRef.current[nextRoomId]?.status === "completed"
+      ) {
+        clearFeedbackGeneration(nextRoomId);
+      }
       applyWorkoutDraft(nextRoomId, !nextRoomId && !user);
     };
 
@@ -855,11 +1058,16 @@ export function HomePage({
   function handleRoomClick(roomId: string) {
     if (roomId === activeRoomId) return;
 
+    mainViewRef.current = "chat";
     setMainView("chat");
     setLoadingRoomId(roomId);
+    activeRoomIdRef.current = roomId;
     setActiveRoomId(roomId);
+    if (feedbackGenerationsRef.current[roomId]?.status === "completed") {
+      clearFeedbackGeneration(roomId);
+    }
     applyWorkoutDraft(roomId, false);
-    setFeedbackText("");
+    setFeedbackText(feedbackGenerationsRef.current[roomId]?.text ?? "");
     replaceUrl(`/c/${roomId}`);
   }
 
@@ -877,6 +1085,7 @@ export function HomePage({
   }
 
   function handleWorkoutHistoryClick() {
+    mainViewRef.current = "workoutHistory";
     setMainView("workoutHistory");
     setLoadingRoomId(null);
     if (window.location.pathname !== WORKOUT_DASHBOARD_PATH) {
@@ -970,11 +1179,11 @@ export function HomePage({
     !user &&
     !activeRoomId &&
     persistedMessages.length === 0 &&
-    feedbackText.length === 0;
+    activeFeedbackText.length === 0;
   const shouldShowGreeting =
     !activeRoomId &&
     persistedMessages.length === 0 &&
-    feedbackText.length === 0;
+    activeFeedbackText.length === 0;
   const demoWorkoutPreview =
     draftWorkout ?? buildFeedbackRequest(workOutType, tier, workoutForm);
   const shouldShowDraftWorkout =
@@ -988,7 +1197,9 @@ export function HomePage({
   );
   const nowForDraft = new Date();
   const hasPendingMessageContent =
-    shouldShowDraftWorkout || feedbackText.length > 0 || generatingFeedback;
+    shouldShowDraftWorkout ||
+    activeFeedbackText.length > 0 ||
+    activeGeneratingFeedback;
   const shouldShowDraftTimestamp =
     loadingRoomId === null &&
     hasPendingMessageContent &&
@@ -1018,6 +1229,8 @@ export function HomePage({
         recentRooms={recentRooms}
         activeRoomId={mainView === "chat" ? activeRoomId : undefined}
         workoutHistoryActive={mainView === "workoutHistory"}
+        generatingRoomIds={generatingFeedbackRoomIds}
+        completedRoomIds={completedFeedbackRoomIds}
         onRoomClick={handleRoomClick}
         onTogglePinRoom={handleTogglePinRoom}
         onRenameRoom={handleRenameRoom}
@@ -1168,13 +1381,13 @@ export function HomePage({
                       />
                     </div>
                   ) : null}
-                  {generatingFeedback && !feedbackText ? (
+                  {activeGeneratingFeedback && !activeFeedbackText ? (
                     <GeneratingFeedbackIndicator />
                   ) : null}
-                  {feedbackText ? (
+                  {activeFeedbackText ? (
                     <FeedbackHtml
-                      text={feedbackText}
-                      streaming={generatingFeedback}
+                      text={activeFeedbackText}
+                      streaming={activeGeneratingFeedback}
                     />
                   ) : null}
                 </>
@@ -1193,7 +1406,7 @@ export function HomePage({
               setWorkoutInputOpen(true);
             }}
             onGenerateFeedback={handleGenerateFeedback}
-            generating={generatingFeedback}
+            generating={activeGeneratingFeedback}
             hasWorkout={draftWorkout !== null}
             workoutInputStatus={workoutInputStatus}
           />
