@@ -1,4 +1,5 @@
 import type { AuthUser } from "@/lib/api";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export function TopAuthActions({
   user,
@@ -13,6 +14,7 @@ export function TopAuthActions({
 }) {
   return (
     <div className="absolute right-4 top-4 z-50 flex items-center gap-2">
+      <ThemeToggle />
       {authPending ? (
         <div
           aria-label="로그인 상태 확인 중"

@@ -1,9 +1,63 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --background: #faf8ff;
   --foreground: #131b2e;
+  --theme-indigo-canvas: #0a0d3a;
+  --theme-raised-indigo: #1e2353;
+  --theme-onyx: #23272a;
+  --theme-black: #000000;
+  --theme-white: #ffffff;
+  --theme-muted-ink: #333333;
+  --theme-surface: #ffffff;
+  --theme-surface-muted: #f5f5f7;
+  --theme-surface-raised: #fafafc;
+  --theme-text: #1d1d1f;
+  --theme-text-subtle: #333333;
+  --theme-text-muted: #7a7a7a;
+  --theme-border: rgba(0, 0, 0, 0.1);
+  --theme-ring: rgba(0, 0, 0, 0.08);
+  --theme-shadow: rgba(15, 23, 42, 0.08);
+  color-scheme: light;
+}
+
+.dark {
+  --background: var(--theme-indigo-canvas);
+  --foreground: var(--theme-white);
+  --theme-surface: var(--theme-raised-indigo);
+  --theme-surface-muted: var(--theme-onyx);
+  --theme-surface-raised: #171b47;
+  --theme-text: var(--theme-white);
+  --theme-text-subtle: rgba(255, 255, 255, 0.82);
+  --theme-text-muted: rgba(255, 255, 255, 0.68);
+  --theme-border: rgba(255, 255, 255, 0.14);
+  --theme-ring: rgba(255, 255, 255, 0.14);
+  --theme-shadow: rgba(0, 0, 0, 0.42);
+  --color-on-background: var(--theme-white);
+  --color-surface-container-highest: var(--theme-raised-indigo);
+  --color-surface-container-high: #171b47;
+  --color-surface-container-lowest: var(--theme-indigo-canvas);
+  --color-surface-container-low: #111540;
+  --color-surface-bright: var(--theme-raised-indigo);
+  --color-on-surface-variant: rgba(255, 255, 255, 0.72);
+  --color-primary: #8fb6ff;
+  --color-on-primary: #061039;
+  --color-inverse-primary: #0066cc;
+  --color-on-surface: var(--theme-white);
+  --color-surface-dim: var(--theme-black);
+  --color-surface: var(--theme-indigo-canvas);
+  --color-outline: rgba(255, 255, 255, 0.52);
+  --color-on-primary-container: var(--theme-white);
+  --color-primary-container: var(--theme-raised-indigo);
+  --color-primary-fixed: #1e2b6f;
+  --color-inverse-on-surface: #1d1d1f;
+  --color-surface-container: var(--theme-raised-indigo);
+  --color-outline-variant: rgba(255, 255, 255, 0.16);
+  --color-surface-variant: #171b47;
+  --color-inverse-surface: var(--theme-white);
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -90,6 +144,9 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
 }
 
 .apple-primary-button {
@@ -492,4 +549,170 @@ body {
 
 .apple-thinking-dots span:nth-child(3) {
   animation-delay: 280ms;
+}
+
+.dark .apple-secondary-pill {
+  border-color: #8fb6ff;
+  background: var(--theme-raised-indigo);
+  color: #dbe7ff;
+}
+
+.dark .apple-secondary-pill:hover {
+  background: #8fb6ff;
+  color: var(--theme-indigo-canvas);
+}
+
+.dark .apple-pearl-capsule,
+.dark .apple-text-input,
+.dark .apple-select-input {
+  border-color: var(--theme-ring);
+  background: var(--theme-raised-indigo);
+  color: var(--theme-white);
+}
+
+.dark .apple-auth-panel,
+.dark .apple-form-panel {
+  border-color: var(--theme-ring);
+  background: color-mix(in srgb, var(--theme-raised-indigo) 94%, transparent);
+}
+
+.dark .apple-icon-button {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.dark .apple-icon-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--theme-white);
+}
+
+.dark .apple-frosted-bar::before {
+  background: linear-gradient(
+    180deg,
+    rgba(10, 13, 58, 0),
+    rgba(10, 13, 58, 0.62) 38%,
+    rgba(10, 13, 58, 0.88)
+  );
+}
+
+.dark .ai-report-html h1,
+.dark .ai-report-html h2,
+.dark .ai-report-html strong {
+  color: var(--theme-white);
+}
+
+.dark .ai-report-html p,
+.dark .ai-report-html ul,
+.dark .ai-report-html ol {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.dark .workout-visual-card {
+  border-color: var(--theme-border);
+  background:
+    radial-gradient(
+      circle at 18% 10%,
+      rgba(143, 182, 255, 0.18),
+      transparent 32%
+    ),
+    radial-gradient(circle at 88% 0%, rgba(111, 251, 190, 0.12), transparent 28%),
+    linear-gradient(145deg, rgba(30, 35, 83, 0.96), rgba(10, 13, 58, 0.88));
+  box-shadow:
+    0 18px 56px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.dark .workout-metric-card {
+  border-color: var(--theme-border);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 10px 28px rgba(0, 0, 0, 0.24);
+}
+
+.dark [class~="bg-white"],
+.dark [class~="bg-white/95"],
+.dark [class~="bg-white/90"],
+.dark [class~="bg-white/70"],
+.dark [class~="bg-white/65"],
+.dark [class~="bg-white/60"] {
+  background-color: var(--theme-raised-indigo) !important;
+}
+
+.dark [class~="from-white"] {
+  --tw-gradient-from: var(--theme-raised-indigo) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(30, 35, 83, 0) var(--tw-gradient-to-position) !important;
+}
+
+.dark [class~="to-[#f0f6ff]"] {
+  --tw-gradient-to: var(--theme-indigo-canvas) var(--tw-gradient-to-position) !important;
+}
+
+.dark [class~="bg-[#fafafc]"],
+.dark [class~="bg-[#f9fafb]"],
+.dark [class~="bg-[#f8fafc]"],
+.dark [class~="bg-[#f5f5f7]"],
+.dark [class~="bg-[#f4f4f5]"],
+.dark [class~="bg-[#f3f4f6]"],
+.dark [class~="bg-[#eef2ff]"],
+.dark [class~="bg-[#eff6ff]"],
+.dark [class~="bg-[#f0f6ff]"] {
+  background-color: var(--theme-onyx) !important;
+}
+
+.dark [class~="bg-surface"],
+.dark [class~="bg-surface-container-lowest"],
+.dark [class~="bg-surface-container-low"],
+.dark [class~="bg-surface-container-high"] {
+  background-color: var(--background) !important;
+}
+
+.dark [class~="text-[#1d1d1f]"],
+.dark [class~="text-[#111827]"],
+.dark [class~="text-[#18181b]"],
+.dark [class~="text-on-background"],
+.dark [class~="text-on-surface"] {
+  color: var(--theme-white) !important;
+}
+
+.dark [class~="text-[#333333]"],
+.dark [class~="text-[#374151]"],
+.dark [class~="text-[#434655]"],
+.dark [class~="text-[#4b5563]"],
+.dark [class~="text-[#555555]"],
+.dark [class~="text-on-surface-variant"] {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.dark [class~="text-[#6b7280]"],
+.dark [class~="text-[#6e6e73]"],
+.dark [class~="text-[#71717a]"],
+.dark [class~="text-[#7a7a7a]"],
+.dark [class~="text-[#8f8f94]"],
+.dark [class~="text-[#9a9a9a]"],
+.dark [class~="text-outline"] {
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+.dark [class~="border-black/10"],
+.dark [class~="border-black/20"],
+.dark [class~="border-outline-variant/30"],
+.dark [class~="border-white/60"],
+.dark [class~="border-white/70"] {
+  border-color: var(--theme-border) !important;
+}
+
+.dark [class~="ring-black/5"],
+.dark [class~="ring-black/10"],
+.dark [class~="ring-black/[0.03]"],
+.dark [class~="ring-black/[0.04]"],
+.dark [class~="ring-black/[0.05]"] {
+  --tw-ring-color: var(--theme-ring) !important;
+}
+
+.dark .prose {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.dark .prose :where(h1, h2, h3, strong) {
+  color: var(--theme-white);
 }

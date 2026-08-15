@@ -2,7 +2,7 @@
 
 ## Source of truth
 - Status: Active
-- Last refreshed: 2026-07-29
+- Last refreshed: 2026-08-16
 - Primary product surfaces: Workout AI Coach chat screen, collapsible sidebar, fixed bottom action bar, mobile bottom navigation.
 - Evidence reviewed:
   - `DESIGN-apple.md` Apple-style design analysis and component tokens.
@@ -36,7 +36,7 @@
 - Tradeoffs: current screen remains a chat app, not a full Apple product-tile page; Apple guidance is adapted at component level.
 
 ## Visual language
-- Color: Action Blue `#0066cc`, focus blue `#0071e3`, Apple parchment `#f5f5f7`, ink `#1d1d1f`, pearl `#fafafc`.
+- Color: Action Blue `#0066cc`, focus blue `#0071e3`, Apple parchment `#f5f5f7`, ink `#1d1d1f`, pearl `#fafafc`. Dark mode uses the shared brand palette from the reference: Indigo Canvas `#0a0d3a` for page base, Raised Indigo `#1e2353` for dark cards and rows, Onyx `#23272a` for secondary surfaces, Black `#000000` for full-black bands when needed, White `#ffffff` for text on dark, and Muted Ink `#333333` for secondary text on light surfaces.
 - Typography: system Apple stack (`SF Pro Text`, `SF Pro Display`, `system-ui`, `-apple-system`) with 17px button copy and subtle negative tracking.
 - Spacing/layout rhythm: 44px minimum touch targets; pill CTAs use 11px × 22px padding.
 - Shape/radius/elevation: full pill for primary/secondary actions; subtle hairline borders; no button shadows.
@@ -52,7 +52,7 @@
   - `.apple-icon-button`
   - `.apple-frosted-bar`
 - Variants and states: hover color change, focus-visible blue outline, active scale press, selected tier ring.
-- Token/component ownership: Apple component classes live in `globals.css`; screen composition remains in `page.tsx`.
+- Token/component ownership: Apple component classes and light/dark theme tokens live in `globals.css`; `ThemeProvider` owns the shared theme state and the root `.dark` class. Screen composition should reuse these tokens instead of introducing one-off dark colors.
 
 ## Accessibility
 - Target standard: WCAG AA directionally.
@@ -85,6 +85,7 @@
 - Performance constraints: no external icon font; inline SVG icons are local.
 - Compatibility constraints: backend runs separately, default API base URL is `http://localhost:8080`.
 - Test/screenshot expectations: run `npm run lint` and `npm run build` after UI changes.
+- Theme implementation: dark mode is class-based (`.dark`) with persisted user preference and system fallback. New components should prefer semantic Tailwind tokens (`bg-surface`, `text-on-surface`) or the existing Apple global classes before adding hard-coded colors.
 
 ## Open questions
 - [ ] Exact workout input form/modal UX / owner: frontend / impact: primary flow completion.
