@@ -488,7 +488,7 @@ function TrendChart({
           <p className="mt-1 text-xs text-[#6b7280]">{description}</p>
         </div>
         <div
-          className={`rounded-md px-2.5 py-1 text-xs font-medium ${tone.badge} ${tone.badgeText}`}
+          className={`rounded-md px-2.5 py-1 text-xs font-medium ${tone.badge} ${tone.badgeText} dark:bg-[#23272a]`}
         >
           최고 {highestValueLabel}
         </div>
@@ -1714,7 +1714,7 @@ export function WorkoutHistoryDashboard({
 
                   return (
                     <div
-                      className="group relative flex w-full flex-col gap-4 px-5 py-4 text-left transition hover:bg-[#f9fafb] dark:hover:bg-[#333333] lg:flex-row lg:items-center lg:justify-between"
+                      className="group relative flex w-full flex-col gap-4 px-5 py-4 text-left transition hover:bg-[#f9fafb] dark:hover:bg-[#23272a] lg:flex-row lg:items-center lg:justify-between"
                       key={itemKey}
                       onFocus={(event) => {
                         showHistoryAction(itemKey, item, event.currentTarget);
