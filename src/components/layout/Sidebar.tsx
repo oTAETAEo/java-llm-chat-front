@@ -101,7 +101,7 @@ function RoomRow({
         </form>
       ) : (
         <button
-          className={`flex w-full items-center gap-2 rounded-lg p-2 pr-16 text-left transition-colors ${
+          className={`flex w-full items-center gap-2 rounded-lg p-2 pr-20 text-left transition-colors ${
             active
               ? "bg-[#f5f5f7] font-medium text-[#1d1d1f]"
               : "text-[#333333] hover:bg-surface-container-low hover:text-on-surface"
@@ -114,23 +114,20 @@ function RoomRow({
             className="h-[18px] w-[18px] shrink-0 text-outline"
           />
           <span className="min-w-0 flex-1 truncate text-sm">{room.title}</span>
-          {generationStatus === "generating" ? (
-            <span
-              aria-label="피드백 생성 중"
-              className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-[#0066cc]"
-            >
-              <span className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-[#0066cc]/25 border-t-[#0066cc]" />
-              생성 중
-            </span>
-          ) : null}
-          {generationStatus === "completed" ? (
-            <span
-              aria-label="새 피드백 도착"
-              className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#0066cc]"
-            />
-          ) : null}
         </button>
       )}
+      {generationStatus === "generating" ? (
+        <span
+          aria-label="피드백 생성 중"
+          className="pointer-events-none absolute right-12 top-1/2 h-2.5 w-2.5 -translate-y-1/2 animate-spin rounded-full border-2 border-[#0066cc]/25 border-t-[#0066cc]"
+        />
+      ) : null}
+      {generationStatus === "completed" ? (
+        <span
+          aria-label="새 피드백 도착"
+          className="pointer-events-none absolute right-12 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-[#0066cc]"
+        />
+      ) : null}
       <button
         aria-label={
           room.pinned ? `${room.title} 고정 해제` : `${room.title} 고정`
