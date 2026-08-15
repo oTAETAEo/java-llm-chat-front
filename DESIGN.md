@@ -36,7 +36,7 @@
 - Tradeoffs: current screen remains a chat app, not a full Apple product-tile page; Apple guidance is adapted at component level.
 
 ## Visual language
-- Color: Action Blue `#0066cc`, focus blue `#0071e3`, Apple parchment `#f5f5f7`, ink `#1d1d1f`, pearl `#fafafc`. Dark mode uses the shared brand palette from the reference: Indigo Canvas `#0a0d3a` for page base, Raised Indigo `#1e2353` for dark cards and rows, Onyx `#23272a` for secondary surfaces, Black `#000000` for full-black bands when needed, White `#ffffff` for text on dark, and Muted Ink `#333333` for secondary text on light surfaces.
+- Color: Action Blue `#0066cc`, focus blue `#0071e3`, Apple parchment `#f5f5f7`, ink `#1d1d1f`, pearl `#fafafc`. Dark mode uses the shared brand palette from the reference: Onyx `#23272a` for the page base and profile-aligned background, Raised Indigo `#1e2353` for dark cards and rows, Indigo Canvas `#0a0d3a` only for deeper bands when needed, Black `#000000` for full-black showcase bands, White `#ffffff` for text on dark, and Muted Ink `#333333` for secondary text on light surfaces.
 - Typography: system Apple stack (`SF Pro Text`, `SF Pro Display`, `system-ui`, `-apple-system`) with 17px button copy and subtle negative tracking.
 - Spacing/layout rhythm: 44px minimum touch targets; pill CTAs use 11px × 22px padding.
 - Shape/radius/elevation: full pill for primary/secondary actions; subtle hairline borders; no button shadows.

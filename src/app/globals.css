@@ -24,10 +24,10 @@
 }
 
 .dark {
-  --background: var(--theme-indigo-canvas);
+  --background: var(--theme-onyx);
   --foreground: var(--theme-white);
   --theme-surface: var(--theme-raised-indigo);
-  --theme-surface-muted: var(--theme-onyx);
+  --theme-surface-muted: #1b1f22;
   --theme-surface-raised: #171b47;
   --theme-text: var(--theme-white);
   --theme-text-subtle: rgba(255, 255, 255, 0.82);
@@ -38,7 +38,7 @@
   --color-on-background: var(--theme-white);
   --color-surface-container-highest: var(--theme-raised-indigo);
   --color-surface-container-high: #171b47;
-  --color-surface-container-lowest: var(--theme-indigo-canvas);
+  --color-surface-container-lowest: var(--theme-onyx);
   --color-surface-container-low: #111540;
   --color-surface-bright: var(--theme-raised-indigo);
   --color-on-surface-variant: rgba(255, 255, 255, 0.72);
@@ -47,7 +47,7 @@
   --color-inverse-primary: #0066cc;
   --color-on-surface: var(--theme-white);
   --color-surface-dim: var(--theme-black);
-  --color-surface: var(--theme-indigo-canvas);
+  --color-surface: var(--theme-onyx);
   --color-outline: rgba(255, 255, 255, 0.52);
   --color-on-primary-container: var(--theme-white);
   --color-primary-container: var(--theme-raised-indigo);
@@ -644,7 +644,7 @@ body {
 }
 
 .dark [class~="to-[#f0f6ff]"] {
-  --tw-gradient-to: var(--theme-indigo-canvas) var(--tw-gradient-to-position) !important;
+  --tw-gradient-to: var(--theme-onyx) var(--tw-gradient-to-position) !important;
 }
 
 .dark [class~="bg-[#fafafc]"],
