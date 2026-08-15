@@ -1369,6 +1369,7 @@ export function HomePage({
               ref={workoutHistoryScrollRef}
             >
               <WorkoutHistoryDashboard
+                demoMode={!user}
                 onRequestFeedback={handleWorkoutHistoryFeedback}
               />
             </div>
