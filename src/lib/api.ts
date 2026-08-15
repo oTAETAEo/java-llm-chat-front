@@ -156,6 +156,10 @@ const NETWORK_ERROR_MESSAGE =
   "일시적으로 연결이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.";
 const API_REQUEST_TIMEOUT_MS = 2500;
 
+type FetchOptions = {
+  timeoutMs?: number | null;
+};
+
 export function isNetworkError(error: unknown) {
   return error instanceof Error && error.message === NETWORK_ERROR_MESSAGE;
 }
@@ -174,17 +178,22 @@ function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
   );
 }
 
-async function fetchWithCredentials(path: string, init?: RequestInit) {
+async function fetchWithCredentials(
+  path: string,
+  init?: RequestInit,
+  options?: FetchOptions,
+) {
   const headers = new Headers(init?.headers);
   if (!(init?.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
   const controller = new AbortController();
-  const timeoutId = window.setTimeout(
-    () => controller.abort(),
-    API_REQUEST_TIMEOUT_MS,
-  );
+  const timeoutMs = options?.timeoutMs ?? API_REQUEST_TIMEOUT_MS;
+  const timeoutId =
+    timeoutMs === null
+      ? null
+      : window.setTimeout(() => controller.abort(), timeoutMs);
   init?.signal?.addEventListener("abort", () => controller.abort(), {
     once: true,
   });
@@ -205,7 +214,9 @@ async function fetchWithCredentials(path: string, init?: RequestInit) {
     }
     throw error;
   } finally {
-    window.clearTimeout(timeoutId);
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId);
+    }
   }
 }
 
@@ -346,14 +357,18 @@ async function openFeedbackStream(
     ? { workout: payload, samples: samples ?? [] }
     : payload;
 
-  return fetchWithCredentials(path, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "text/event-stream",
+  return fetchWithCredentials(
+    path,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "text/event-stream",
+      },
+      body: JSON.stringify(body),
     },
-    body: JSON.stringify(body),
-  });
+    { timeoutMs: null },
+  );
 }
 
 export async function requestFeedbackStream(
