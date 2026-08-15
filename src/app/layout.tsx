@@ -35,7 +35,7 @@ export default function RootLayout({
             toastOptions={{
               classNames: {
                 toast:
-                  "rounded-xl border border-black/10 bg-white text-sm shadow-lg dark:border-white/15 dark:bg-[#1e2353] dark:text-white",
+                  "rounded-xl border border-black/10 bg-white text-sm shadow-lg dark:border-white/15 dark:bg-[#333333] dark:text-white",
                 title: "text-[13px] font-medium text-[#131b2e] dark:text-white",
                 description: "text-[12px] text-[#434655] dark:text-white/70",
               },

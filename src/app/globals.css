@@ -5,8 +5,6 @@
 :root {
   --background: #faf8ff;
   --foreground: #131b2e;
-  --theme-indigo-canvas: #0a0d3a;
-  --theme-raised-indigo: #1e2353;
   --theme-onyx: #23272a;
   --theme-black: #000000;
   --theme-white: #ffffff;
@@ -26,9 +24,9 @@
 .dark {
   --background: var(--theme-onyx);
   --foreground: var(--theme-white);
-  --theme-surface: var(--theme-raised-indigo);
-  --theme-surface-muted: #1b1f22;
-  --theme-surface-raised: #171b47;
+  --theme-surface: var(--theme-muted-ink);
+  --theme-surface-muted: var(--theme-onyx);
+  --theme-surface-raised: var(--theme-muted-ink);
   --theme-text: var(--theme-white);
   --theme-text-subtle: rgba(255, 255, 255, 0.82);
   --theme-text-muted: rgba(255, 255, 255, 0.68);
@@ -36,26 +34,26 @@
   --theme-ring: rgba(255, 255, 255, 0.14);
   --theme-shadow: rgba(0, 0, 0, 0.42);
   --color-on-background: var(--theme-white);
-  --color-surface-container-highest: var(--theme-raised-indigo);
-  --color-surface-container-high: #171b47;
+  --color-surface-container-highest: var(--theme-muted-ink);
+  --color-surface-container-high: var(--theme-muted-ink);
   --color-surface-container-lowest: var(--theme-onyx);
-  --color-surface-container-low: #111540;
-  --color-surface-bright: var(--theme-raised-indigo);
+  --color-surface-container-low: var(--theme-onyx);
+  --color-surface-bright: var(--theme-muted-ink);
   --color-on-surface-variant: rgba(255, 255, 255, 0.72);
   --color-primary: #8fb6ff;
-  --color-on-primary: #061039;
+  --color-on-primary: var(--theme-white);
   --color-inverse-primary: #0066cc;
   --color-on-surface: var(--theme-white);
   --color-surface-dim: var(--theme-black);
   --color-surface: var(--theme-onyx);
   --color-outline: rgba(255, 255, 255, 0.52);
   --color-on-primary-container: var(--theme-white);
-  --color-primary-container: var(--theme-raised-indigo);
-  --color-primary-fixed: #1e2b6f;
+  --color-primary-container: var(--theme-muted-ink);
+  --color-primary-fixed: var(--theme-muted-ink);
   --color-inverse-on-surface: #1d1d1f;
-  --color-surface-container: var(--theme-raised-indigo);
+  --color-surface-container: var(--theme-muted-ink);
   --color-outline-variant: rgba(255, 255, 255, 0.16);
-  --color-surface-variant: #171b47;
+  --color-surface-variant: var(--theme-muted-ink);
   --color-inverse-surface: var(--theme-white);
   color-scheme: dark;
 }
@@ -553,27 +551,27 @@ body {
 
 .dark .apple-secondary-pill {
   border-color: #8fb6ff;
-  background: var(--theme-raised-indigo);
+  background: var(--theme-muted-ink);
   color: #dbe7ff;
 }
 
 .dark .apple-secondary-pill:hover {
   background: #8fb6ff;
-  color: var(--theme-indigo-canvas);
+  color: var(--theme-black);
 }
 
 .dark .apple-pearl-capsule,
 .dark .apple-text-input,
 .dark .apple-select-input {
   border-color: var(--theme-ring);
-  background: var(--theme-raised-indigo);
+  background: var(--theme-muted-ink);
   color: var(--theme-white);
 }
 
 .dark .apple-auth-panel,
 .dark .apple-form-panel {
   border-color: var(--theme-ring);
-  background: color-mix(in srgb, var(--theme-raised-indigo) 94%, transparent);
+  background: color-mix(in srgb, var(--theme-muted-ink) 94%, transparent);
 }
 
 .dark .apple-icon-button {
@@ -588,10 +586,29 @@ body {
 .dark .apple-frosted-bar::before {
   background: linear-gradient(
     180deg,
-    rgba(10, 13, 58, 0),
-    rgba(10, 13, 58, 0.62) 38%,
-    rgba(10, 13, 58, 0.88)
+    rgba(35, 39, 42, 0),
+    rgba(35, 39, 42, 0.62) 38%,
+    rgba(0, 0, 0, 0.82)
   );
+}
+
+.dark aside {
+  background-color: var(--theme-onyx) !important;
+}
+
+.dark aside [class~="bg-white"],
+.dark aside [class~="bg-white/95"],
+.dark aside [class~="bg-white/90"],
+.dark aside [class~="bg-white/70"],
+.dark aside [class~="bg-[#f4f4f5]"] {
+  background-color: var(--theme-onyx) !important;
+}
+
+.dark aside [class~="bg-[#f5f5f7]"],
+.dark aside [class~="hover:bg-[#f0f0f0]"]:hover,
+.dark aside [class~="hover:bg-[#f5f5f7]"]:hover,
+.dark aside [class~="hover:bg-surface-container-low"]:hover {
+  background-color: var(--theme-muted-ink) !important;
 }
 
 .dark .ai-report-html h1,
@@ -615,7 +632,7 @@ body {
       transparent 32%
     ),
     radial-gradient(circle at 88% 0%, rgba(111, 251, 190, 0.12), transparent 28%),
-    linear-gradient(145deg, rgba(30, 35, 83, 0.96), rgba(10, 13, 58, 0.88));
+    linear-gradient(145deg, rgba(51, 51, 51, 0.96), rgba(35, 39, 42, 0.92));
   box-shadow:
     0 18px 56px rgba(0, 0, 0, 0.38),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -635,12 +652,12 @@ body {
 .dark [class~="bg-white/70"],
 .dark [class~="bg-white/65"],
 .dark [class~="bg-white/60"] {
-  background-color: var(--theme-raised-indigo) !important;
+  background-color: var(--theme-muted-ink) !important;
 }
 
 .dark [class~="from-white"] {
-  --tw-gradient-from: var(--theme-raised-indigo) var(--tw-gradient-from-position) !important;
-  --tw-gradient-to: rgba(30, 35, 83, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-from: var(--theme-muted-ink) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(51, 51, 51, 0) var(--tw-gradient-to-position) !important;
 }
 
 .dark [class~="to-[#f0f6ff]"] {
