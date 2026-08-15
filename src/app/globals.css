@@ -18,6 +18,7 @@
   --theme-border: rgba(0, 0, 0, 0.1);
   --theme-ring: rgba(0, 0, 0, 0.08);
   --theme-shadow: rgba(15, 23, 42, 0.08);
+  --workout-chart-hover-guide: rgba(29, 29, 31, 0.42);
   color-scheme: light;
 }
 
@@ -33,6 +34,7 @@
   --theme-border: rgba(255, 255, 255, 0.14);
   --theme-ring: rgba(255, 255, 255, 0.14);
   --theme-shadow: rgba(0, 0, 0, 0.42);
+  --workout-chart-hover-guide: rgba(255, 255, 255, 0.72);
   --color-on-background: var(--theme-white);
   --color-surface-container-highest: var(--theme-muted-ink);
   --color-surface-container-high: var(--theme-muted-ink);

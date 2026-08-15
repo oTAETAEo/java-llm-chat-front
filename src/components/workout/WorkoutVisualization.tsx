@@ -409,7 +409,7 @@ function SensorLineChart({
         <polygon fill={`url(#${gradientId})`} points={areaString} />
         {hoveredPoint ? (
           <line
-            stroke="rgba(29,29,31,0.42)"
+            stroke="var(--workout-chart-hover-guide)"
             strokeDasharray="3 3"
             strokeWidth="1"
             x1={hoveredPoint.x}
