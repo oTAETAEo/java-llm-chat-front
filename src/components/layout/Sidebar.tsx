@@ -119,13 +119,13 @@ function RoomRow({
       {generationStatus === "generating" ? (
         <span
           aria-label="피드백 생성 중"
-          className="pointer-events-none absolute right-12 top-1/2 h-2.5 w-2.5 -translate-y-1/2 animate-spin rounded-full border-2 border-[#0066cc]/25 border-t-[#0066cc]"
+          className="pointer-events-none absolute right-3 top-1/2 z-10 h-2.5 w-2.5 -translate-y-1/2 animate-spin rounded-full border-2 border-[#0066cc]/25 border-t-[#0066cc]"
         />
       ) : null}
       {generationStatus === "completed" ? (
         <span
           aria-label="새 피드백 도착"
-          className="pointer-events-none absolute right-12 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-[#0066cc]"
+          className="pointer-events-none absolute right-3 top-1/2 z-10 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-[#0066cc]"
         />
       ) : null}
       <button
@@ -133,7 +133,9 @@ function RoomRow({
           room.pinned ? `${room.title} 고정 해제` : `${room.title} 고정`
         }
         className={`apple-icon-button absolute right-8 top-1/2 h-7 w-7 -translate-y-1/2 items-center justify-center p-1 ${
-          editing ? "hidden" : "hidden group-hover:flex focus:flex"
+          editing || generationStatus
+            ? "hidden"
+            : "hidden group-hover:flex focus:flex"
         } ${room.pinned ? "flex text-[#0066cc]" : "text-[#71717a]"}`}
         onClick={(event) => {
           event.stopPropagation();
@@ -146,7 +148,7 @@ function RoomRow({
       <button
         aria-label={`${room.title} 메뉴`}
         className={`apple-icon-button absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 items-center justify-center p-1 text-[#71717a] aria-expanded:flex ${
-          editing ? "hidden" : "hidden group-hover:flex"
+          editing || generationStatus ? "hidden" : "hidden group-hover:flex"
         }`}
         aria-expanded={menuOpen}
         onClick={(event) => {
