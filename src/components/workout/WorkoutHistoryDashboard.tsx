@@ -849,7 +849,7 @@ function HistoryMetric({
   value: string;
 }) {
   return (
-    <div className="min-w-0 rounded-lg bg-[#f9fafb] px-3 py-2.5 text-center ring-1 ring-black/[0.03]">
+    <div className="min-w-[112px] shrink-0 rounded-lg bg-[#f9fafb] px-3 py-2.5 text-center ring-1 ring-black/[0.03] sm:min-w-[124px] lg:min-w-0 lg:shrink">
       <div className="truncate text-[11px] font-medium text-[#6b7280]">
         {label}
       </div>
@@ -938,10 +938,10 @@ function WorkoutHistoryDashboardSkeleton() {
                         <SkeletonLine className="mt-2 h-3 w-32" />
                       </div>
                     </div>
-                    <div className="grid w-full min-w-0 gap-2 grid-cols-2 md:grid-cols-3 lg:max-w-[640px] lg:grid-cols-5">
+                    <div className="flex w-full min-w-0 gap-2 overflow-x-auto pb-1 lg:grid lg:max-w-[640px] lg:grid-cols-5 lg:overflow-visible lg:pb-0">
                       {Array.from({ length: 5 }, (_, metricIndex) => (
                         <div
-                          className="rounded-lg bg-[#f9fafb] px-3 py-2.5"
+                          className="min-w-[112px] shrink-0 rounded-lg bg-[#f9fafb] px-3 py-2.5 sm:min-w-[124px] lg:min-w-0 lg:shrink"
                           key={metricIndex}
                         >
                           <SkeletonLine className="mx-auto h-3 w-12" />
@@ -1678,10 +1678,10 @@ export function WorkoutHistoryDashboard({
                         <div className="h-4 w-52 rounded-full bg-[#f3f4f6]" />
                         <div className="mt-2 h-3 w-32 rounded-full bg-[#f3f4f6]" />
                       </div>
-                      <div className="grid w-full min-w-0 grid-cols-2 gap-2 md:grid-cols-3 lg:max-w-[640px] lg:grid-cols-5">
+                      <div className="flex w-full min-w-0 gap-2 overflow-x-auto pb-1 lg:grid lg:max-w-[640px] lg:grid-cols-5 lg:overflow-visible lg:pb-0">
                         {Array.from({ length: 5 }, (_, metricIndex) => (
                           <div
-                            className="rounded-lg bg-[#f9fafb] px-3 py-2.5"
+                            className="min-w-[112px] shrink-0 rounded-lg bg-[#f9fafb] px-3 py-2.5 sm:min-w-[124px] lg:min-w-0 lg:shrink"
                             key={metricIndex}
                           >
                             <div className="mx-auto h-3 w-12 rounded-full bg-[#f3f4f6]" />
@@ -1768,7 +1768,7 @@ export function WorkoutHistoryDashboard({
                         </div>
                       </div>
 
-                      <div className="grid w-full min-w-0 grid-cols-2 gap-2 md:grid-cols-3 lg:max-w-[640px] lg:grid-cols-5">
+                      <div className="flex w-full min-w-0 gap-2 overflow-x-auto pb-1 lg:grid lg:max-w-[640px] lg:grid-cols-5 lg:overflow-visible lg:pb-0">
                         <HistoryMetric
                           label="거리"
                           value={`${formatNumber(item.distance)} km`}
