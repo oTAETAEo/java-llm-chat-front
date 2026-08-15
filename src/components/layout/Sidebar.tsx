@@ -329,7 +329,7 @@ export function Sidebar({
               className="apple-icon-button flex items-center justify-center p-1.5"
               type="button"
             >
-              <Icon name="search" className="h-7 w-7" />
+              <Icon name="search" className="h-6 w-6" />
             </button>
             <button
               aria-label="사이드바 닫기"
@@ -337,7 +337,7 @@ export function Sidebar({
               onClick={onClose}
               type="button"
             >
-              <Icon name="dock_to_left" className="h-7 w-7" />
+              <Icon name="dock_to_left" className="h-6 w-6" />
             </button>
           </div>
         </div>
@@ -349,14 +349,14 @@ export function Sidebar({
               onClick={onNewChatClick}
               type="button"
             >
-              <Icon name="edit_square" className="h-7 w-7" />
+              <Icon name="edit_square" className="h-6 w-6" />
               <span className="truncate text-sm">새 운동 피드백</span>
             </button>
           </div>
           <SidebarButton
             active={workoutHistoryActive}
             icon="view_column"
-            iconClassName="h-7 w-7"
+            iconClassName="h-6 w-6"
             onClick={() => {
               setOpenMenuId(null);
               onWorkoutHistoryClick?.();
@@ -364,7 +364,7 @@ export function Sidebar({
           >
             운동 기록
           </SidebarButton>
-          <SidebarButton icon="more_horiz" iconClassName="h-7 w-7">
+          <SidebarButton icon="more_horiz" iconClassName="h-6 w-6">
             더 보기
           </SidebarButton>
 
