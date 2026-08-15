@@ -4,10 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   getWorkoutDashboardHistories,
+  getWorkoutDashboardInsights,
   getWorkoutDashboardSummary,
   getWorkoutDetail,
   saveFitWorkoutRecords,
   type FeedbackRequest,
+  type WorkoutDashboardInsight,
   type WorkoutDetail,
   type WorkoutDashboardFilters,
   type WorkoutDashboardSummary,
@@ -218,6 +220,96 @@ function demoDashboardSummary(
       avgHeartRate: item.avgHeartRate,
       elevGain: item.elevGain,
     })),
+  };
+}
+
+function demoDashboardInsight(
+  items: WorkoutHistoryItem[],
+): WorkoutDashboardInsight {
+  const runningItems = items.filter((item) => item.workOutType === "RUNNING");
+  const cyclingItems = items.filter((item) => item.workOutType === "CYCLING");
+  const totalDistance = items.reduce((sum, item) => sum + (item.distance ?? 0), 0);
+  const runningDistance = runningItems.reduce(
+    (sum, item) => sum + (item.distance ?? 0),
+    0,
+  );
+  const cyclingDistance = cyclingItems.reduce(
+    (sum, item) => sum + (item.distance ?? 0),
+    0,
+  );
+  const runningPaces = runningItems.flatMap((item) =>
+    item.avgPace == null ? [] : [item.avgPace],
+  );
+  const cyclingPowers = cyclingItems.flatMap((item) =>
+    item.avgPower == null ? [] : [item.avgPower],
+  );
+  const average = (values: number[]) =>
+    values.length === 0
+      ? null
+      : values.reduce((sum, value) => sum + value, 0) / values.length;
+  const percent = (value: number, total: number) =>
+    total <= 0 ? 0 : (value / total) * 100;
+  const days: WorkoutDashboardInsight["workoutFrequency"]["days"] = [
+    "MONDAY",
+    "TUESDAY",
+    "WEDNESDAY",
+    "THURSDAY",
+    "FRIDAY",
+    "SATURDAY",
+    "SUNDAY",
+  ].map((dayOfWeek) => ({
+    dayOfWeek:
+      dayOfWeek as WorkoutDashboardInsight["workoutFrequency"]["days"][number]["dayOfWeek"],
+    count: 0,
+  }));
+  const dayIndex = new Map(days.map((day, index) => [day.dayOfWeek, index]));
+  items.forEach((item) => {
+    const dayOfWeek = new Date(item.startedAt)
+      .toLocaleDateString("en-US", { weekday: "long" })
+      .toUpperCase() as WorkoutDashboardInsight["workoutFrequency"]["days"][number]["dayOfWeek"];
+    const index = dayIndex.get(dayOfWeek);
+    if (index !== undefined) {
+      days[index] = { ...days[index], count: days[index].count + 1 };
+    }
+  });
+  const feedbackUsedWorkoutCount = items.filter(
+    (item) => item.feedbackCount > 0,
+  ).length;
+
+  return {
+    typeDistribution: {
+      totalWorkoutCount: items.length,
+      totalDistance,
+      running: {
+        workOutType: "RUNNING",
+        count: runningItems.length,
+        distance: runningDistance,
+        workoutRatio: percent(runningItems.length, items.length),
+        distanceRatio: percent(runningDistance, totalDistance),
+      },
+      cycling: {
+        workOutType: "CYCLING",
+        count: cyclingItems.length,
+        distance: cyclingDistance,
+        workoutRatio: percent(cyclingItems.length, items.length),
+        distanceRatio: percent(cyclingDistance, totalDistance),
+      },
+      avgRunningPace: average(runningPaces),
+      avgCyclingPower: average(cyclingPowers),
+    },
+    workoutFrequency: {
+      maxCount: Math.max(0, ...days.map((day) => day.count)),
+      days,
+    },
+    feedbackUsage: {
+      totalWorkoutCount: items.length,
+      feedbackUsedWorkoutCount,
+      totalFeedbackCount: items.reduce(
+        (sum, item) => sum + item.feedbackCount,
+        0,
+      ),
+      usageRate: percent(feedbackUsedWorkoutCount, items.length),
+    },
   };
 }
 
@@ -461,6 +553,7 @@ function MiniGauge({
   value,
   color,
   track,
+  description,
   animate,
   delayMs = 0,
 }: {
@@ -468,6 +561,7 @@ function MiniGauge({
   value: number;
   color: string;
   track: string;
+  description: string;
   animate: boolean;
   delayMs?: number;
 }) {
@@ -513,24 +607,39 @@ function MiniGauge({
       <div className="min-w-0">
         <div className="text-sm font-semibold text-[#111827]">{label}</div>
         <div className="mt-1 text-xs leading-relaxed text-[#6b7280]">
-          디자인 확인용 임시 게이지입니다.
+          {description}
         </div>
       </div>
     </div>
   );
 }
 
-function WeeklyFrequencyBars({ animate }: { animate: boolean }) {
-  const values = [
-    { label: "월", value: 42 },
-    { label: "화", value: 68 },
-    { label: "수", value: 54 },
-    { label: "목", value: 82 },
-    { label: "금", value: 74 },
-    { label: "토", value: 96 },
-    { label: "일", value: 58 },
-  ];
-  const maxValue = Math.max(1, ...values.map((item) => item.value));
+const dayLabels: Record<
+  WorkoutDashboardInsight["workoutFrequency"]["days"][number]["dayOfWeek"],
+  string
+> = {
+  MONDAY: "월",
+  TUESDAY: "화",
+  WEDNESDAY: "수",
+  THURSDAY: "목",
+  FRIDAY: "금",
+  SATURDAY: "토",
+  SUNDAY: "일",
+};
+
+function WeeklyFrequencyBars({
+  frequency,
+  animate,
+}: {
+  frequency: WorkoutDashboardInsight["workoutFrequency"] | null;
+  animate: boolean;
+}) {
+  const values =
+    frequency?.days.map((day) => ({
+      label: dayLabels[day.dayOfWeek],
+      value: day.count,
+    })) ?? [];
+  const maxValue = Math.max(1, frequency?.maxCount ?? 0);
 
   return (
     <div className="rounded-lg bg-[#f9fafb] p-3">
@@ -538,7 +647,7 @@ function WeeklyFrequencyBars({ animate }: { animate: boolean }) {
         <div>
           <div className="text-sm font-semibold text-[#111827]">운동 빈도</div>
           <div className="mt-0.5 text-xs text-[#6b7280]">
-            월~일 기준 임시 빈도입니다.
+            월~일 기준 운동 기록 횟수입니다.
           </div>
         </div>
         <span className="rounded-md bg-[#eef2ff] px-2 py-1 text-[11px] font-semibold text-[#3730a3]">
@@ -587,12 +696,15 @@ function WeeklyFrequencyBars({ animate }: { animate: boolean }) {
 }
 
 function WorkoutTypeSplitCard({
-  summary,
+  insights,
   animate,
 }: {
-  summary: WorkoutDashboardSummary | null;
+  insights: WorkoutDashboardInsight | null;
   animate: boolean;
 }) {
+  const typeDistribution = insights?.typeDistribution;
+  const feedbackUsage = insights?.feedbackUsage;
+
   return (
     <div className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
       <div className="mb-6 text-center">
@@ -605,26 +717,18 @@ function WorkoutTypeSplitCard({
       </div>
       <div className="mx-auto w-full max-w-70 space-y-5">
         <TypeSplit
-          count={summary?.runningCount ?? 0}
-          distance={summary?.runningDistance ?? 0}
+          count={typeDistribution?.running.count ?? 0}
+          distance={typeDistribution?.running.distance ?? 0}
           label="러닝"
-          ratio={
-            summary?.totalDistance
-              ? (summary.runningDistance / summary.totalDistance) * 100
-              : 0
-          }
+          ratio={typeDistribution?.running.distanceRatio ?? 0}
           animate={animate}
           tone="blue"
         />
         <TypeSplit
-          count={summary?.cyclingCount ?? 0}
-          distance={summary?.cyclingDistance ?? 0}
+          count={typeDistribution?.cycling.count ?? 0}
+          distance={typeDistribution?.cycling.distance ?? 0}
           label="사이클"
-          ratio={
-            summary?.totalDistance
-              ? (summary.cyclingDistance / summary.totalDistance) * 100
-              : 0
-          }
+          ratio={typeDistribution?.cycling.distanceRatio ?? 0}
           animate={animate}
           tone="green"
         />
@@ -633,33 +737,29 @@ function WorkoutTypeSplitCard({
         <div className="rounded-lg bg-[#f9fafb] p-3 text-center">
           <div className="text-xs text-[#6b7280]">러닝 평균 페이스</div>
           <div className="mt-1 text-base font-semibold text-[#111827]">
-            {formatPace(summary?.avgRunningPace ?? null)}
+            {formatPace(typeDistribution?.avgRunningPace ?? null)}
           </div>
         </div>
         <div className="rounded-lg bg-[#f9fafb] p-3 text-center">
           <div className="text-xs text-[#6b7280]">사이클 평균 파워</div>
           <div className="mt-1 text-base font-semibold text-[#111827]">
-            {formatNumber(summary?.avgCyclingPower ?? null, 0)} W
+            {formatNumber(typeDistribution?.avgCyclingPower ?? null, 0)} W
           </div>
         </div>
       </div>
       <div className="mt-4 space-y-3">
-        <WeeklyFrequencyBars animate={animate} />
-        <MiniGauge
+        <WeeklyFrequencyBars
           animate={animate}
-          color="stroke-[#059669]"
-          delayMs={140}
-          label="피드백 활용"
-          track="stroke-[#d1fae5]"
-          value={64}
+          frequency={insights?.workoutFrequency ?? null}
         />
         <MiniGauge
           animate={animate}
-          color="stroke-[#7c3aed]"
-          delayMs={220}
-          label="훈련 부하"
-          track="stroke-[#ede9fe]"
-          value={86}
+          color="stroke-[#059669]"
+          description={`${feedbackUsage?.feedbackUsedWorkoutCount ?? 0}개 운동에서 피드백을 활용했습니다.`}
+          delayMs={140}
+          label="피드백 활용"
+          track="stroke-[#d1fae5]"
+          value={Math.round(feedbackUsage?.usageRate ?? 0)}
         />
       </div>
     </div>
@@ -868,6 +968,9 @@ export function WorkoutHistoryDashboard({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [summary, setSummary] = useState<WorkoutDashboardSummary | null>(null);
+  const [insights, setInsights] = useState<WorkoutDashboardInsight | null>(
+    null,
+  );
   const [historyItems, setHistoryItems] = useState<WorkoutHistoryItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasNext, setHasNext] = useState(false);
@@ -1016,7 +1119,7 @@ export function WorkoutHistoryDashboard({
     },
     {
       title: "최근 상승 고도",
-      description: "운동별 오르막 부하를 임시로 비교합니다.",
+      description: "운동별 오르막 부하 흐름을 비교합니다.",
       unit: "m",
       tone: trendTones.elevation,
       points: recentTrendBase.map((item) => ({
@@ -1039,6 +1142,7 @@ export function WorkoutHistoryDashboard({
     setLoading(true);
     setAnimateTrendCharts(false);
     setSummary(null);
+    setInsights(null);
     setHistoryItems([]);
     setNextCursor(null);
     setHasNext(false);
@@ -1048,6 +1152,7 @@ export function WorkoutHistoryDashboard({
     if (demoMode) {
       const items = demoHistoryItems(filters);
       setSummary(demoDashboardSummary(items));
+      setInsights(demoDashboardInsight(items));
       setHistoryItems(items);
       setNextCursor(null);
       setHasNext(false);
@@ -1058,17 +1163,20 @@ export function WorkoutHistoryDashboard({
     setLoading(true);
     setAnimateTrendCharts(false);
     setSummary(null);
+    setInsights(null);
     setHistoryItems([]);
     setNextCursor(null);
     setHasNext(false);
 
     try {
-      const [summaryResult, historyResult] = await Promise.all([
+      const [summaryResult, insightsResult, historyResult] = await Promise.all([
         getWorkoutDashboardSummary(filters),
+        getWorkoutDashboardInsights(filters),
         getWorkoutDashboardHistories(filters, { size: HISTORY_PAGE_SIZE }),
       ]);
 
       setSummary(summaryResult);
+      setInsights(insightsResult);
       setHistoryItems(historyResult.items);
       setNextCursor(historyResult.nextCursor);
       setHasNext(historyResult.hasNext);
@@ -1158,6 +1266,7 @@ export function WorkoutHistoryDashboard({
         if (!active) return;
         const items = demoHistoryItems(filters);
         setSummary(demoDashboardSummary(items));
+        setInsights(demoDashboardInsight(items));
         setHistoryItems(items);
         setNextCursor(null);
         setHasNext(false);
@@ -1171,11 +1280,13 @@ export function WorkoutHistoryDashboard({
 
     Promise.all([
       getWorkoutDashboardSummary(filters),
+      getWorkoutDashboardInsights(filters),
       getWorkoutDashboardHistories(filters, { size: HISTORY_PAGE_SIZE }),
     ])
-      .then(([summaryResult, historyResult]) => {
+      .then(([summaryResult, insightsResult, historyResult]) => {
         if (!active) return;
         setSummary(summaryResult);
+        setInsights(insightsResult);
         setHistoryItems(historyResult.items);
         setNextCursor(historyResult.nextCursor);
         setHasNext(historyResult.hasNext);
@@ -1183,6 +1294,7 @@ export function WorkoutHistoryDashboard({
       .catch((loadError) => {
         if (!active) return;
         setSummary(null);
+        setInsights(null);
         setHistoryItems([]);
         setNextCursor(null);
         setHasNext(false);
@@ -1340,10 +1452,10 @@ export function WorkoutHistoryDashboard({
       }
       cardElement.style.transform = "";
     };
-  }, [historyItems.length, summary]);
+  }, [historyItems.length, insights, summary]);
 
   const showInitialLoading =
-    loading && summary === null && historyItems.length === 0;
+    loading && summary === null && insights === null && historyItems.length === 0;
 
   return (
     <section
@@ -1514,9 +1626,9 @@ export function WorkoutHistoryDashboard({
                       전체 {summary?.totalWorkoutCount ?? 0}개
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-[#6b7280]">
-                    {demoMode
-                      ? "로그인 전에는 임시 운동 기록으로 화면을 미리 확인할 수 있습니다."
+                    <p className="mt-1 text-xs text-[#6b7280]">
+                      {demoMode
+                      ? "로그인 전에는 체험용 운동 기록으로 화면을 미리 확인할 수 있습니다."
                       : "저장된 운동 기록과 피드백 횟수를 한눈에 확인할 수 있습니다."}
                   </p>
                 </div>
@@ -1708,7 +1820,7 @@ export function WorkoutHistoryDashboard({
             <div className="will-change-transform" ref={followCardRef}>
               <WorkoutTypeSplitCard
                 animate={animateTrendCharts}
-                summary={summary}
+                insights={insights}
               />
             </div>
           </div>

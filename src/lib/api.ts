@@ -57,6 +57,45 @@ export type WorkoutDashboardSummary = {
   }>;
 };
 
+export type WorkoutDashboardInsight = {
+  typeDistribution: {
+    totalWorkoutCount: number;
+    totalDistance: number;
+    running: WorkoutTypeShare;
+    cycling: WorkoutTypeShare;
+    avgRunningPace: number | null;
+    avgCyclingPower: number | null;
+  };
+  workoutFrequency: {
+    maxCount: number;
+    days: Array<{
+      dayOfWeek:
+        | "MONDAY"
+        | "TUESDAY"
+        | "WEDNESDAY"
+        | "THURSDAY"
+        | "FRIDAY"
+        | "SATURDAY"
+        | "SUNDAY";
+      count: number;
+    }>;
+  };
+  feedbackUsage: {
+    totalWorkoutCount: number;
+    feedbackUsedWorkoutCount: number;
+    totalFeedbackCount: number;
+    usageRate: number;
+  };
+};
+
+export type WorkoutTypeShare = {
+  workOutType: FeedbackRequest["workOutType"];
+  count: number;
+  distance: number;
+  workoutRatio: number;
+  distanceRatio: number;
+};
+
 export type WorkoutHistoryItem = FeedbackRequest & {
   workoutId: number;
   feedbackCount: number;
@@ -552,6 +591,12 @@ function workoutDashboardSearchParams(
 export function getWorkoutDashboardSummary(filters: WorkoutDashboardFilters) {
   return apiFetch<WorkoutDashboardSummary>(
     `/api/v1/workouts/dashboard/summary?${workoutDashboardSearchParams(filters)}`,
+  );
+}
+
+export function getWorkoutDashboardInsights(filters: WorkoutDashboardFilters) {
+  return apiFetch<WorkoutDashboardInsight>(
+    `/api/v1/workouts/dashboard/insights?${workoutDashboardSearchParams(filters)}`,
   );
 }
 
