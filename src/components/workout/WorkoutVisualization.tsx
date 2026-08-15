@@ -130,6 +130,23 @@ function downsampleChartValues(
   });
 }
 
+function hasSensorChartValues(
+  samples: FitSensorSample[],
+  valueKey: keyof FitSensorSample,
+) {
+  let valueCount = 0;
+
+  for (const sample of samples) {
+    if (isNumber(sample[valueKey] as number | null)) {
+      valueCount += 1;
+    }
+
+    if (valueCount >= 2) return true;
+  }
+
+  return false;
+}
+
 function FitRoutePreview({ samples }: { samples: FitSensorSample[] }) {
   const points = samples.filter(
     (sample) => isNumber(sample.latitude) && isNumber(sample.longitude),
@@ -442,32 +459,36 @@ function FitSensorPreview({ samples }: { samples: FitSensorSample[] }) {
     { label: "케이던스", valueKey: "cadence" as const, color: "#00a86b", unit: "rpm" },
     { label: "속도", valueKey: "speed" as const, color: "#0066cc", unit: "km/h" },
     { label: "고도", valueKey: "altitude" as const, color: "#ff8a00", unit: "m" },
-  ];
+  ].filter((config) => hasSensorChartValues(samples, config.valueKey));
 
   return (
     <>
       <FitRoutePreview samples={samples} />
-      <section className="mt-4 lg:-mx-2">
-        <div className="grid gap-3 lg:grid-cols-2 lg:gap-2">
-          {chartConfigs.map((config, index) => (
-            <SensorLineChart
-              className={
-                chartConfigs.length % 2 === 1 && index === chartConfigs.length - 1
-                  ? "lg:col-start-1 lg:translate-x-[calc(50%+0.25rem)]"
-                  : ""
-              }
-              color={config.color}
-              hoveredSampleIndex={hoveredSampleIndex}
-              key={config.label}
-              label={config.label}
-              onHoverSampleIndexChange={setHoveredSampleIndex}
-              samples={samples}
-              unit={config.unit}
-              valueKey={config.valueKey}
-            />
-          ))}
-        </div>
-      </section>
+      {chartConfigs.length > 0 ? (
+        <section className="mt-4">
+          <div className="grid gap-3 lg:grid-cols-2">
+            {chartConfigs.map((config, index) => (
+              <SensorLineChart
+                className={
+                  chartConfigs.length === 1 ||
+                  (chartConfigs.length % 2 === 1 &&
+                    index === chartConfigs.length - 1)
+                    ? "lg:col-span-2"
+                    : ""
+                }
+                color={config.color}
+                hoveredSampleIndex={hoveredSampleIndex}
+                key={config.label}
+                label={config.label}
+                onHoverSampleIndexChange={setHoveredSampleIndex}
+                samples={samples}
+                unit={config.unit}
+                valueKey={config.valueKey}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </>
   );
 }
