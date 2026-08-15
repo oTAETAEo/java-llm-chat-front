@@ -209,6 +209,8 @@ export type ApiErrorResponse = {
 
 const NETWORK_ERROR_MESSAGE =
   "일시적으로 연결이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.";
+const TEMPORARY_ERROR_MESSAGE =
+  "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
 const API_REQUEST_TIMEOUT_MS = 2500;
 
 type FetchOptions = {
@@ -231,6 +233,24 @@ function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
     typeof candidate.message === "string" &&
     typeof candidate.path === "string"
   );
+}
+
+function isTemporaryServerErrorMessage(message: string) {
+  const normalized = message.trim().toLowerCase();
+  return (
+    normalized.includes("서버 내부 오류") ||
+    normalized.includes("internal server error")
+  );
+}
+
+function normalizeApiErrorMessage(message: string, status?: number) {
+  if (status !== undefined && status >= 500) {
+    return TEMPORARY_ERROR_MESSAGE;
+  }
+  if (isTemporaryServerErrorMessage(message)) {
+    return TEMPORARY_ERROR_MESSAGE;
+  }
+  return message;
 }
 
 async function fetchWithCredentials(
@@ -276,22 +296,26 @@ async function fetchWithCredentials(
 }
 
 async function readErrorMessage(response: Response, fallback: string) {
+  if (response.status >= 500) {
+    return TEMPORARY_ERROR_MESSAGE;
+  }
+
   const text = await response.text();
   if (!text) return fallback;
 
   try {
     const parsed = JSON.parse(text) as unknown;
     if (isApiErrorResponse(parsed) && parsed.message.length > 0) {
-      return parsed.message;
+      return normalizeApiErrorMessage(parsed.message, parsed.status);
     }
     if (isApiErrorResponse(parsed) && parsed.code.length > 0) {
       return parsed.code;
     }
   } catch {
-    return text;
+    return normalizeApiErrorMessage(text, response.status);
   }
 
-  return text;
+  return normalizeApiErrorMessage(text, response.status);
 }
 
 async function reissueAccessToken() {
@@ -492,7 +516,7 @@ export async function requestFeedbackStream(
         return;
       }
       if (typeof parsed.message === "string" && parsed.message.length > 0) {
-        throw new Error(parsed.message);
+        throw new Error(normalizeApiErrorMessage(parsed.message));
       }
       if (typeof parsed.content === "string") {
         onChunk(parsed.content);
