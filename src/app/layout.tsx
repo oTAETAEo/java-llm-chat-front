@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
+import { CookieBanner } from "@/components/legal/CookieBanner";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,8 +15,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
+      <head>
+        <link
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+          rel="stylesheet"
+        />
+      </head>
       <body>
         {children}
+        <CookieBanner />
         <Toaster
           closeButton
           position="top-center"

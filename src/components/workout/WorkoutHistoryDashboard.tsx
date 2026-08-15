@@ -23,6 +23,7 @@ import {
   formatPace,
 } from "@/lib/workout";
 import { demoWorkouts } from "@/constants/demo";
+import { parseServerDateTime, serverDateTimeToEpoch } from "@/lib/dateTime";
 
 type FilterPeriod = WorkoutDashboardFilters["period"];
 type FilterWorkoutType = WorkoutDashboardFilters["workOutType"];
@@ -88,7 +89,11 @@ function formatFileSize(size: number) {
 }
 
 function compactDateParts(value: string) {
-  const date = new Date(value);
+  const date = parseServerDateTime(value);
+  if (!date) {
+    return { date: value, weekday: "-" };
+  }
+
   return {
     date: new Intl.DateTimeFormat("ko-KR", {
       month: "numeric",
@@ -106,7 +111,9 @@ function compactDate(value: string) {
 }
 
 function startTime(value: string) {
-  const date = new Date(value);
+  const date = parseServerDateTime(value);
+  if (!date) return "-";
+
   return new Intl.DateTimeFormat("ko-KR", {
     hour: "2-digit",
     minute: "2-digit",
@@ -129,7 +136,9 @@ function sourceLabel(source: FeedbackRequest["inputSource"]) {
 function isInPeriod(workout: FeedbackRequest, filters: WorkoutDashboardFilters) {
   if (filters.period === "ALL") return true;
 
-  const startedAt = new Date(workout.startedAt);
+  const startedAt = parseServerDateTime(workout.startedAt);
+  if (!startedAt) return false;
+
   const now = new Date();
 
   if (filters.period === "custom") {
@@ -165,7 +174,8 @@ function demoHistoryItems(filters: WorkoutDashboardFilters) {
     })
     .sort(
       (left, right) =>
-        new Date(right.startedAt).getTime() - new Date(left.startedAt).getTime(),
+        serverDateTimeToEpoch(right.startedAt) -
+        serverDateTimeToEpoch(left.startedAt),
     );
 }
 
@@ -264,7 +274,10 @@ function demoDashboardInsight(
   }));
   const dayIndex = new Map(days.map((day, index) => [day.dayOfWeek, index]));
   items.forEach((item) => {
-    const dayOfWeek = new Date(item.startedAt)
+    const date = parseServerDateTime(item.startedAt);
+    if (!date) return;
+
+    const dayOfWeek = date
       .toLocaleDateString("en-US", { weekday: "long" })
       .toUpperCase() as WorkoutDashboardInsight["workoutFrequency"]["days"][number]["dayOfWeek"];
     const index = dayIndex.get(dayOfWeek);

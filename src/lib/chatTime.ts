@@ -1,4 +1,5 @@
 import type { FeedbackMessage } from "@/lib/api";
+import { parseServerDateTime } from "@/lib/dateTime";
 
 export const MESSAGE_TIME_GAP_MS = 30 * 60 * 1000;
 
@@ -17,10 +18,7 @@ export function formatChatTimestamp(date: Date) {
 }
 
 export function parseMessageDate(message: FeedbackMessage) {
-  if (!message.createdAt) return null;
-
-  const date = new Date(message.createdAt);
-  return Number.isNaN(date.getTime()) ? null : date;
+  return parseServerDateTime(message.createdAt);
 }
 
 export function shouldShowTimeSeparator(

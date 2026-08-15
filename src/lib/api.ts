@@ -7,6 +7,20 @@ export type AuthUser = {
   nickname: string;
 };
 
+export type LegalTerm = {
+  termsId: number;
+  type: "TERMS_OF_SERVICE" | "PRIVACY_POLICY" | "SENSITIVE_INFORMATION" | "MARKETING";
+  code: string;
+  title: string;
+  version: string;
+  contentUrl: string;
+  required: boolean;
+};
+
+export type LegalTermDetail = LegalTerm & {
+  content: string;
+};
+
 export type FeedbackRoomSummary = {
   roomId: string;
   title: string;
@@ -327,11 +341,16 @@ export function signUp(payload: {
   email: string;
   password: string;
   nickname: string;
+  agreedTermsIds: number[];
 }) {
   return apiFetch<AuthUser>("/api/v1/auth/sign-up", {
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export function getSignUpTerms() {
+  return apiFetch<LegalTerm[]>("/api/v1/auth/terms");
 }
 
 export function login(payload: { email: string; password: string }) {

@@ -1,4 +1,5 @@
 import type { FeedbackRequest } from "@/lib/api";
+import { parseServerDateTime } from "@/lib/dateTime";
 
 export type WorkoutField = Exclude<
   keyof FeedbackRequest,
@@ -116,8 +117,8 @@ export function formatDuration(seconds: number | null) {
 export function formatDateTime(value: string) {
   if (!value) return "-";
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
+  const date = parseServerDateTime(value);
+  if (!date) return value;
 
   return new Intl.DateTimeFormat("ko-KR", {
     month: "short",

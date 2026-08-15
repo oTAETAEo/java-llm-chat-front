@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   --background: #faf8ff;
@@ -53,7 +54,7 @@
   --color-surface-variant: #dae2fd;
   --color-inverse-surface: #283044;
   --font-sans:
-    "SF Pro Text", "SF Pro Display", system-ui, -apple-system,
+    "Pretendard Variable", Pretendard, "SF Pro Text", "SF Pro Display", system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: var(--font-jetbrains-mono);
   --spacing-stack-sm: 8px;
@@ -80,6 +81,8 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family:
+    "Pretendard Variable",
+    Pretendard,
     "SF Pro Text",
     "SF Pro Display",
     system-ui,
