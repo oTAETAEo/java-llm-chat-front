@@ -603,7 +603,6 @@ body {
   background-color: var(--theme-onyx) !important;
 }
 
-.dark aside button:hover,
 .dark aside [class~="bg-[#f5f5f7]"],
 .dark aside [class~="bg-[#f4f4f5]"],
 .dark aside [class~="hover:bg-[#e4e4e7]"]:hover,

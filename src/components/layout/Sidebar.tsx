@@ -21,8 +21,8 @@ function SidebarButton({
     <button
       className={`flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors ${
         active
-          ? "bg-[#f5f5f7] font-medium text-[#1d1d1f] hover:bg-[#f0f0f0]"
-          : "text-[#333333] hover:bg-surface-container-low hover:text-on-surface"
+          ? "bg-[#f5f5f7] font-medium text-[#1d1d1f] hover:bg-[#f0f0f0] dark:bg-[#333333] dark:text-white dark:hover:bg-[#333333]"
+          : "text-[#333333] hover:bg-surface-container-low hover:text-on-surface dark:text-white/70 dark:hover:bg-[#333333] dark:hover:text-white"
       }`}
       onClick={onClick}
       type="button"
@@ -103,8 +103,8 @@ function RoomRow({
         <button
           className={`flex w-full items-center gap-2 rounded-lg p-2 pr-20 text-left transition-colors ${
             active
-              ? "bg-[#f5f5f7] font-medium text-[#1d1d1f]"
-              : "text-[#333333] hover:bg-surface-container-low hover:text-on-surface"
+              ? "bg-[#f5f5f7] font-medium text-[#1d1d1f] dark:bg-[#333333] dark:text-white"
+              : "text-[#333333] hover:bg-surface-container-low hover:text-on-surface dark:text-white/70 dark:hover:bg-[#333333] dark:hover:text-white"
           }`}
           onClick={() => onRoomClick(room.roomId)}
           type="button"
@@ -309,7 +309,7 @@ export function Sidebar({
       ) : null}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-[80] flex h-dvh max-w-[calc(100vw-24px)] shrink-0 flex-col overflow-hidden border-r border-outline-variant/30 bg-white text-on-surface shadow-[12px_0_40px_rgba(15,23,42,0.16)] transition-all duration-300 ease-in-out lg:relative lg:inset-auto lg:z-auto lg:h-full lg:max-w-none lg:shadow-[4px_0_24px_rgba(0,0,0,0.02)] ${
+        className={`fixed inset-y-0 left-0 z-[80] flex h-dvh max-w-[calc(100vw-24px)] shrink-0 flex-col overflow-hidden border-r border-outline-variant/30 bg-white text-on-surface shadow-[12px_0_40px_rgba(15,23,42,0.16)] transition-all duration-300 ease-in-out dark:bg-[#23272a] lg:relative lg:inset-auto lg:z-auto lg:h-full lg:max-w-none lg:shadow-[4px_0_24px_rgba(0,0,0,0.02)] ${
           open
             ? "w-[min(82vw,280px)] opacity-100 lg:w-[260px]"
             : "pointer-events-none w-0 opacity-0"
@@ -341,7 +341,7 @@ export function Sidebar({
         <div className="sidebar-scroll flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-2">
           <div className="mt-4">
             <button
-              className="flex w-full items-center gap-3 rounded-lg bg-[#f5f5f7] p-2 text-left font-medium text-[#1d1d1f] transition-colors hover:bg-[#f0f0f0]"
+              className="flex w-full items-center gap-3 rounded-lg bg-[#f5f5f7] p-2 text-left font-medium text-[#1d1d1f] transition-colors hover:bg-[#f0f0f0] dark:bg-[#333333] dark:text-white dark:hover:bg-[#333333]"
               onClick={onNewChatClick}
               type="button"
             >
@@ -392,7 +392,7 @@ export function Sidebar({
         </div>
       </div>
 
-      <div className="bg-white p-3">
+      <div className="bg-white p-3 dark:bg-[#23272a]">
         {authPending ? (
           <div
             aria-label="로그인 상태 확인 중"
@@ -401,13 +401,13 @@ export function Sidebar({
         ) : user ? (
           <div className="relative">
             {profileMenuOpen ? (
-              <div className="absolute bottom-full left-0 z-50 mb-2 w-full overflow-hidden rounded-2xl border border-black/10 bg-white p-1 shadow-[0_18px_50px_rgba(0,0,0,0.16)]">
+              <div className="absolute bottom-full left-0 z-50 mb-2 w-full overflow-hidden rounded-2xl border border-black/10 bg-white p-1 shadow-[0_18px_50px_rgba(0,0,0,0.16)] dark:border-white/10 dark:bg-[#333333]">
                 {profileMenuItems.map((item) => (
                   <button
                     className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors ${
                       item.tone === "danger"
-                        ? "text-[#d70015] hover:bg-red-50"
-                        : "text-[#1d1d1f] hover:bg-[#f5f5f7]"
+                        ? "text-[#d70015] hover:bg-red-50 dark:hover:bg-[#23272a]"
+                        : "text-[#1d1d1f] hover:bg-[#f5f5f7] dark:text-white dark:hover:bg-[#23272a]"
                     }`}
                     key={item.label}
                     onClick={() => {
@@ -423,7 +423,7 @@ export function Sidebar({
               </div>
             ) : null}
 
-            <div className="flex w-full items-center gap-3 rounded-2xl bg-[#f4f4f5] p-3 transition-colors hover:bg-[#e4e4e7]">
+            <div className="flex w-full items-center gap-3 rounded-2xl bg-[#f4f4f5] p-3 transition-colors hover:bg-[#e4e4e7] dark:bg-[#333333] dark:hover:bg-[#333333]">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1d1d1f] text-sm font-medium text-white">
                 {user.nickname.slice(0, 2).toUpperCase()}
               </div>
