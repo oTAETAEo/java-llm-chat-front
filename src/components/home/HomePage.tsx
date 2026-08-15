@@ -510,7 +510,7 @@ export function HomePage({
     const { samples, ...payload } = workout;
     const room = await createFeedbackRoom();
     const roomId = room.roomId;
-    const streamingSamples = samples.length > 0 ? samples : null;
+    const previewSamples = samples.length > 0 ? samples : null;
 
     mainViewRef.current = "chat";
     setMainView("chat");
@@ -523,68 +523,15 @@ export function HomePage({
     setTier(payload.tier);
     setWorkoutForm(workoutToForm(payload));
     setDraftWorkout(payload);
-    setFitPreviewSamples(streamingSamples);
+    setFitPreviewSamples(previewSamples);
     setWorkoutInputError("");
     setFeedbackText("");
-    setGeneratingFeedback(true);
-    generatingFeedbackRef.current = true;
     workoutDraftKeyRef.current = workoutDraftStorageKey(roomId);
     shouldAutoScrollRef.current = true;
     replaceUrl(`/c/${roomId}`);
-    setFeedbackGeneration(roomId, { status: "generating", text: "" });
     void refreshRoomLists().catch(() => {
       // Sidebar refresh is non-blocking after creating a feedback room.
     });
-
-    try {
-      await requestFeedbackStream(
-        payload,
-        (chunk) => {
-          updateFeedbackGenerations((current) => {
-            const currentGeneration = current[roomId];
-
-            return {
-              ...current,
-              [roomId]: {
-                status: "generating",
-                text: `${currentGeneration?.text ?? ""}${chunk}`,
-              },
-            };
-          });
-          if (isRoomVisible(roomId)) {
-            setFeedbackText((current) => `${current}${chunk}`);
-          }
-        },
-        roomId,
-        streamingSamples,
-      );
-
-      await refreshFeedbackRoomState(roomId);
-      if (isRoomVisible(roomId)) {
-        clearFeedbackGeneration(roomId);
-        scrollChatToBottom("smooth");
-      } else {
-        setFeedbackGeneration(roomId, { status: "completed", text: "" });
-      }
-    } catch (error) {
-      if (
-        isNetworkError(error) &&
-        (await reconcileSavedAssistantMessage(roomId, new Set()))
-      ) {
-        if (isRoomVisible(roomId)) {
-          clearFeedbackGeneration(roomId);
-        } else {
-          setFeedbackGeneration(roomId, { status: "completed", text: "" });
-        }
-        return;
-      }
-
-      clearFeedbackGeneration(roomId);
-      toast.error(resolveErrorMessage(error, "피드백 생성에 실패했습니다."));
-    } finally {
-      generatingFeedbackRef.current = false;
-      setGeneratingFeedback(false);
-    }
   }
 
   function handleSaveWorkout() {
