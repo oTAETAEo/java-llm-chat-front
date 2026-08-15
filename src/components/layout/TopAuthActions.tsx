@@ -12,7 +12,7 @@ export function TopAuthActions({
   return (
     <div className="absolute right-4 top-4 z-50 flex items-center gap-2">
       {user ? (
-        <span className="hidden rounded-full bg-white/90 px-4 py-2 text-sm text-[#1d1d1f] ring-1 ring-black/10 sm:inline">
+        <span className="inline-flex max-w-[42vw] truncate rounded-full bg-white/90 px-3 py-2 text-sm text-[#1d1d1f] ring-1 ring-black/10 sm:max-w-none sm:px-4">
           {user.nickname}님
         </span>
       ) : (
