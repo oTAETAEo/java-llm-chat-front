@@ -194,6 +194,7 @@ export function Sidebar({
   open,
   onClose,
   user,
+  authPending = false,
   onLoginClick,
   onLogoutClick,
   onNewChatClick,
@@ -212,6 +213,7 @@ export function Sidebar({
   open: boolean;
   onClose: () => void;
   user: AuthUser | null;
+  authPending?: boolean;
   onLoginClick: () => void;
   onLogoutClick: () => void;
   onNewChatClick: () => void;
@@ -391,7 +393,12 @@ export function Sidebar({
       </div>
 
       <div className="bg-white p-3">
-        {user ? (
+        {authPending ? (
+          <div
+            aria-label="로그인 상태 확인 중"
+            className="h-14 rounded-2xl bg-[#f4f4f5]"
+          />
+        ) : user ? (
           <div className="relative">
             {profileMenuOpen ? (
               <div className="absolute bottom-full left-0 z-50 mb-2 w-full overflow-hidden rounded-2xl border border-black/10 bg-white p-1 shadow-[0_18px_50px_rgba(0,0,0,0.16)]">

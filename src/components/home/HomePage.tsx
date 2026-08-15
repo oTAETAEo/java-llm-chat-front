@@ -216,6 +216,8 @@ export function HomePage({
   const activeGeneratingFeedback =
     activeRoomGeneration?.status === "generating" ||
     (!activeRoomId && generatingFeedback);
+  const authPending = !authChecked;
+  const isSignedOut = authChecked && !user;
   const missingRequiredTerms = user?.missingRequiredTerms ?? [];
   const termsAgreementRequired = Boolean(user?.requiresTermsAgreement);
   const termsAgreementItems: ConsentItem[] = missingRequiredTerms.map((term) => ({
@@ -598,6 +600,8 @@ export function HomePage({
   }
 
   async function handleGenerateFeedback() {
+    if (authPending) return;
+
     mainViewRef.current = "chat";
     setMainView("chat");
     const payload =
@@ -611,7 +615,7 @@ export function HomePage({
       return;
     }
 
-    if (!user) {
+    if (isSignedOut) {
       const nextDemoIndex =
         (demoFeedbackIndexRef.current + 1) % demoFeedbackTexts.length;
       setWorkoutInputError("");
@@ -734,7 +738,7 @@ export function HomePage({
     setPersistedMessages([]);
     setRoomWorkouts([]);
     setLoadingRoomId(null);
-    if (!user) {
+    if (isSignedOut) {
       rotateDemoWorkout();
     } else {
       setWorkoutForm(emptyWorkoutForm);
@@ -878,7 +882,7 @@ export function HomePage({
 
   useEffect(() => {
     if (
-      user ||
+      !isSignedOut ||
       activeRoomId ||
       persistedMessages.length > 0 ||
       activeFeedbackText
@@ -902,8 +906,8 @@ export function HomePage({
     activeRoomId,
     activeFeedbackText,
     greetingStreaming,
+    isSignedOut,
     persistedMessages.length,
-    user,
   ]);
 
   useEffect(() => {
@@ -930,14 +934,14 @@ export function HomePage({
 
   useEffect(() => {
     const demoAutoStreaming =
-      !user &&
+      isSignedOut &&
       !activeRoomId &&
       persistedMessages.length === 0 &&
       activeFeedbackText.length === 0 &&
       demoStep >= 2 &&
       demoStreaming;
     const demoCtaVisible =
-      !user &&
+      isSignedOut &&
       !activeRoomId &&
       persistedMessages.length === 0 &&
       activeFeedbackText.length === 0 &&
@@ -976,6 +980,7 @@ export function HomePage({
     activeGeneratingFeedback,
     persistedMessages.length,
     draftWorkout,
+    isSignedOut,
     user,
   ]);
 
@@ -1094,7 +1099,7 @@ export function HomePage({
       ) {
         clearFeedbackGeneration(nextRoomId);
       }
-      applyWorkoutDraft(nextRoomId, !nextRoomId && !user);
+      applyWorkoutDraft(nextRoomId, !nextRoomId && isSignedOut);
     };
 
     window.addEventListener("popstate", syncRoomWithUrl);
@@ -1259,12 +1264,12 @@ export function HomePage({
     { messageIds: [], latestSignature: null },
   );
   const shouldShowDemo =
-    authChecked &&
-    !user &&
+    isSignedOut &&
     !activeRoomId &&
     persistedMessages.length === 0 &&
     activeFeedbackText.length === 0;
   const shouldShowGreeting =
+    authChecked &&
     !activeRoomId &&
     persistedMessages.length === 0 &&
     activeFeedbackText.length === 0;
@@ -1305,6 +1310,7 @@ export function HomePage({
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         user={user}
+        authPending={authPending}
         onLoginClick={() => openAuthDialog("login")}
         onLogoutClick={handleLogout}
         onNewChatClick={handleNewChat}
@@ -1335,6 +1341,7 @@ export function HomePage({
 
         <TopAuthActions
           user={user}
+          authPending={authPending}
           onLoginClick={() => openAuthDialog("login")}
           onSignUpClick={() => openAuthDialog("signup")}
         />
@@ -1345,10 +1352,27 @@ export function HomePage({
               className="chat-scroll flex-1 overflow-y-auto pt-14 md:pt-16"
               ref={workoutHistoryScrollRef}
             >
-              <WorkoutHistoryDashboard
-                demoMode={!user}
-                onRequestFeedback={handleWorkoutHistoryFeedback}
-              />
+              {authPending ? (
+                <div
+                  aria-label="로그인 상태 확인 중"
+                  className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-3 py-6 sm:px-4 sm:py-8 md:px-8"
+                >
+                  <div className="h-8 w-44 rounded-full bg-black/5" />
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    {Array.from({ length: 4 }, (_, index) => (
+                      <div
+                        className="h-28 rounded-lg border border-black/5 bg-white/65"
+                        key={index}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <WorkoutHistoryDashboard
+                  demoMode={isSignedOut}
+                  onRequestFeedback={handleWorkoutHistoryFeedback}
+                />
+              )}
             </div>
           ) : (
             <div
@@ -1490,7 +1514,7 @@ export function HomePage({
               setWorkoutInputOpen(true);
             }}
             onGenerateFeedback={handleGenerateFeedback}
-            generating={activeGeneratingFeedback}
+            generating={activeGeneratingFeedback || authPending}
             hasWorkout={draftWorkout !== null}
             workoutInputStatus={workoutInputStatus}
           />
