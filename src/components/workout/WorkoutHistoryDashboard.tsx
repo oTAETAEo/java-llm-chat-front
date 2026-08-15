@@ -745,6 +745,119 @@ function HistoryMetric({
   );
 }
 
+function SkeletonLine({ className = "" }: { className?: string }) {
+  return <div className={`rounded-full bg-[#f3f4f6] ${className}`} />;
+}
+
+function WorkoutHistoryDashboardSkeleton() {
+  return (
+    <>
+      <div
+        aria-label="운동 통계 불러오는 중"
+        className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+        role="status"
+      >
+        {Array.from({ length: 4 }, (_, index) => (
+          <div
+            className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]"
+            key={index}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <div className="h-10 w-10 rounded-lg bg-[#f3f4f6]" />
+              <SkeletonLine className="h-4 w-16" />
+            </div>
+            <SkeletonLine className="h-7 w-28" />
+            <SkeletonLine className="mt-3 h-4 w-36" />
+          </div>
+        ))}
+      </div>
+
+      <div className="relative left-1/2 w-[min(1500px,calc(100vw-32px))] -translate-x-1/2">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="flex min-w-0 flex-col gap-4">
+            <div className="grid gap-4 lg:grid-cols-2">
+              {Array.from({ length: 4 }, (_, index) => (
+                <div
+                  className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]"
+                  key={index}
+                >
+                  <SkeletonLine className="h-5 w-32" />
+                  <SkeletonLine className="mt-2 h-3 w-52" />
+                  <div className="mt-6 flex h-40 items-end gap-2">
+                    {Array.from({ length: 7 }, (_, barIndex) => (
+                      <div
+                        className="flex min-w-0 flex-1 flex-col items-center gap-2"
+                        key={barIndex}
+                      >
+                        <div
+                          className="w-full rounded-md bg-[#f3f4f6]"
+                          style={{ height: `${36 + ((barIndex * 17) % 76)}px` }}
+                        />
+                        <SkeletonLine className="h-2 w-7" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded-lg border border-black/10 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
+              <div className="flex flex-col gap-4 border-b border-black/10 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <SkeletonLine className="h-5 w-40" />
+                  <SkeletonLine className="mt-2 h-3 w-72 max-w-full" />
+                </div>
+                <div className="h-10 w-24 rounded-lg bg-[#f3f4f6]" />
+              </div>
+              <div className="divide-y divide-black/10">
+                {Array.from({ length: 4 }, (_, index) => (
+                  <div
+                    className="flex flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between"
+                    key={index}
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-4">
+                      <div className="h-11 w-11 shrink-0 rounded-lg bg-[#f3f4f6]" />
+                      <div className="min-w-0 flex-1">
+                        <SkeletonLine className="h-5 w-48" />
+                        <SkeletonLine className="mt-2 h-4 w-64 max-w-full" />
+                        <SkeletonLine className="mt-2 h-3 w-32" />
+                      </div>
+                    </div>
+                    <div className="grid w-full gap-2 sm:grid-cols-2 lg:w-[640px] lg:grid-cols-5">
+                      {Array.from({ length: 5 }, (_, metricIndex) => (
+                        <div
+                          className="rounded-lg bg-[#f9fafb] px-3 py-2.5"
+                          key={metricIndex}
+                        >
+                          <SkeletonLine className="mx-auto h-3 w-12" />
+                          <SkeletonLine className="mx-auto mt-2 h-4 w-20" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
+            <SkeletonLine className="mx-auto h-5 w-32" />
+            <SkeletonLine className="mx-auto mt-2 h-3 w-48" />
+            <div className="mt-8 space-y-5">
+              <div className="mx-auto h-48 w-48 rounded-full bg-[#f3f4f6]" />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="h-16 rounded-lg bg-[#f9fafb]" />
+                <div className="h-16 rounded-lg bg-[#f9fafb]" />
+              </div>
+              <div className="h-36 rounded-lg bg-[#f9fafb]" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export function WorkoutHistoryDashboard({
   demoMode = false,
   onRequestFeedback,
@@ -925,6 +1038,7 @@ export function WorkoutHistoryDashboard({
   function beginFilterChange() {
     setLoading(true);
     setAnimateTrendCharts(false);
+    setSummary(null);
     setHistoryItems([]);
     setNextCursor(null);
     setHasNext(false);
@@ -943,6 +1057,7 @@ export function WorkoutHistoryDashboard({
 
     setLoading(true);
     setAnimateTrendCharts(false);
+    setSummary(null);
     setHistoryItems([]);
     setNextCursor(null);
     setHasNext(false);
@@ -1227,8 +1342,14 @@ export function WorkoutHistoryDashboard({
     };
   }, [historyItems.length, summary]);
 
+  const showInitialLoading =
+    loading && summary === null && historyItems.length === 0;
+
   return (
-    <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 md:px-8">
+    <section
+      aria-busy={showInitialLoading}
+      className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 md:px-8"
+    >
       <div className="relative flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-sm font-medium text-[#2563eb]">운동 기록</p>
@@ -1325,6 +1446,10 @@ export function WorkoutHistoryDashboard({
         ) : null}
       </div>
 
+      {showInitialLoading ? <WorkoutHistoryDashboardSkeleton /> : null}
+
+      {!showInitialLoading ? (
+        <>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <DashboardStat
           icon="route"
@@ -1589,6 +1714,8 @@ export function WorkoutHistoryDashboard({
           </div>
         </div>
       </div>
+        </>
+      ) : null}
 
       {uploadDialogOpen ? (
         <div

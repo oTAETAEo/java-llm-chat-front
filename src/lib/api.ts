@@ -143,9 +143,13 @@ export type FeedbackRequest = {
   steps: number | null;
 };
 
-type ApiErrorResponse = {
-  message?: unknown;
-  code?: unknown;
+export type ApiErrorResponse = {
+  timestamp: string;
+  status: number;
+  error: string;
+  code: string;
+  message: string;
+  path: string;
 };
 
 const NETWORK_ERROR_MESSAGE =
@@ -154,6 +158,20 @@ const API_REQUEST_TIMEOUT_MS = 2500;
 
 export function isNetworkError(error: unknown) {
   return error instanceof Error && error.message === NETWORK_ERROR_MESSAGE;
+}
+
+function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
+  if (!value || typeof value !== "object") return false;
+
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.timestamp === "string" &&
+    typeof candidate.status === "number" &&
+    typeof candidate.error === "string" &&
+    typeof candidate.code === "string" &&
+    typeof candidate.message === "string" &&
+    typeof candidate.path === "string"
+  );
 }
 
 async function fetchWithCredentials(path: string, init?: RequestInit) {
@@ -196,11 +214,11 @@ async function readErrorMessage(response: Response, fallback: string) {
   if (!text) return fallback;
 
   try {
-    const parsed = JSON.parse(text) as ApiErrorResponse;
-    if (typeof parsed.message === "string" && parsed.message.length > 0) {
+    const parsed = JSON.parse(text) as unknown;
+    if (isApiErrorResponse(parsed) && parsed.message.length > 0) {
       return parsed.message;
     }
-    if (typeof parsed.code === "string" && parsed.code.length > 0) {
+    if (isApiErrorResponse(parsed) && parsed.code.length > 0) {
       return parsed.code;
     }
   } catch {

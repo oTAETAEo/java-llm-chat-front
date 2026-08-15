@@ -987,9 +987,11 @@ export function HomePage({
     null,
   );
   const nowForDraft = new Date();
+  const hasPendingMessageContent =
+    shouldShowDraftWorkout || feedbackText.length > 0 || generatingFeedback;
   const shouldShowDraftTimestamp =
     loadingRoomId === null &&
-    (draftWorkout !== null || feedbackText.length > 0) &&
+    hasPendingMessageContent &&
     lastMessageDate !== null &&
     nowForDraft.getTime() - lastMessageDate.getTime() >= MESSAGE_TIME_GAP_MS;
   const workoutInputStatus =
