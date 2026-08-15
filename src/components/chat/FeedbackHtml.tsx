@@ -67,12 +67,12 @@ export function FeedbackHtml({ text, streaming }: { text: string; streaming: boo
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl gap-4">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary-fixed bg-primary-container text-on-primary-container shadow-sm">
+    <div className="mx-auto flex w-full max-w-3xl gap-3 sm:gap-4">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-primary-fixed bg-primary-container text-on-primary-container shadow-sm sm:h-10 sm:w-10">
         <Icon name="smart_toy" className="h-3.5 w-3.5" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="rounded-[18px] border border-black/10 bg-white p-5 text-[#1d1d1f]">
+        <div className="rounded-[18px] border border-black/10 bg-white p-4 text-[#1d1d1f] sm:p-5">
           <div className="ai-report-html" dangerouslySetInnerHTML={{ __html: safeHtml }} />
           {streaming ? <span className="apple-stream-cursor inline-block h-5 w-1 translate-y-1 rounded-full bg-[#0066cc]" /> : null}
         </div>

@@ -1268,7 +1268,7 @@ export function HomePage({
         : "empty";
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface font-sans text-on-background antialiased">
+    <div className="flex h-dvh overflow-hidden bg-surface font-sans text-on-background antialiased">
       <Sidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -1346,7 +1346,7 @@ export function HomePage({
                   {shouldShowDemo && demoStep >= 1 ? (
                     <div className="apple-demo-enter mx-auto flex w-full max-w-3xl justify-end">
                       <WorkoutVisualization
-                        className="max-w-[92%]"
+                        className="max-w-full sm:max-w-[92%]"
                         workout={demoWorkoutPreview}
                       />
                     </div>
@@ -1399,7 +1399,7 @@ export function HomePage({
                           ) ? (
                             <div className="mx-auto flex w-full max-w-3xl justify-end">
                               <WorkoutVisualization
-                                className="max-w-[92%]"
+                                className="max-w-full sm:max-w-[92%]"
                                 fitSamples={workout.samples}
                                 workout={workout}
                               />
@@ -1427,7 +1427,7 @@ export function HomePage({
                   {shouldShowDraftWorkout ? (
                     <div className="mx-auto flex w-full max-w-3xl justify-end">
                       <WorkoutVisualization
-                        className="max-w-[92%]"
+                        className="max-w-full sm:max-w-[92%]"
                         fitSamples={fitPreviewSamples}
                         workout={draftWorkout}
                       />

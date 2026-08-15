@@ -19,7 +19,7 @@ export function TierDropdown({
   const selectedLabel = options.find((option) => option.value === tier)?.label ?? "아마추어";
 
   return (
-    <div className="relative w-24 shrink-0">
+    <div className="relative w-full sm:w-24 sm:shrink-0">
       <button className="apple-pearl-capsule flex w-full items-center justify-center gap-1 px-2" onClick={() => setOpen((value) => !value)} type="button">
         <span className="text-[10px] font-bold uppercase tracking-wider">{selectedLabel}</span>
         <Icon name="keyboard_arrow_down" className="h-4 w-4" />

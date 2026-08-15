@@ -501,17 +501,17 @@ export function WorkoutInputDialog({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/20 px-4 py-8 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/20 px-3 py-3 backdrop-blur-sm sm:px-4 sm:py-8">
       <form
-        className="apple-form-panel flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden"
+        className="apple-form-panel flex max-h-[calc(100dvh-24px)] w-full max-w-3xl flex-col overflow-hidden sm:max-h-[88vh]"
         onSubmit={(event) => {
           event.preventDefault();
           onSave();
         }}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-black/10 p-6">
-          <div>
-            <h2 className="mt-1 text-3xl font-semibold tracking-[-0.374px] text-[#1d1d1f]">
+        <div className="flex items-start justify-between gap-3 border-b border-black/10 p-4 sm:gap-4 sm:p-6">
+          <div className="min-w-0">
+            <h2 className="mt-1 text-2xl font-semibold tracking-[-0.224px] text-[#1d1d1f] sm:text-3xl">
               운동 데이터 입력
             </h2>
             <p className="mt-2 text-sm leading-5 text-[#7a7a7a]">
@@ -529,7 +529,7 @@ export function WorkoutInputDialog({
           </button>
         </div>
 
-        <div className="chat-scroll overflow-y-auto p-6">
+        <div className="chat-scroll overflow-y-auto p-4 sm:p-6">
           {error ? (
             <div className="mb-5 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
               {error}
@@ -548,7 +548,7 @@ export function WorkoutInputDialog({
                 </p>
               </div>
               <button
-                className={`apple-secondary-pill inline-flex shrink-0 items-center gap-2 px-4 transition ${
+                className={`apple-secondary-pill inline-flex w-full shrink-0 items-center justify-center gap-2 px-4 text-sm transition sm:w-auto sm:text-[17px] ${
                   fitUploadStatus
                     ? "border-[#b8e2c8] bg-[#f0fff5] text-[#087b36]"
                     : ""
@@ -630,7 +630,7 @@ export function WorkoutInputDialog({
 
           <section className="mb-6">
             <label className="apple-field-label">
-              <span className="flex items-center justify-between gap-3">
+              <span className="flex flex-wrap items-center justify-between gap-3">
                 <span>운동 제목</span>
                 {form.inputSource === "FIT_FILE" ? (
                   <span className="shrink-0 rounded-full bg-[#f0f6ff] px-2.5 py-1 text-[11px] font-semibold text-[#0066cc] ring-1 ring-[#0066cc]/15">
@@ -669,8 +669,8 @@ export function WorkoutInputDialog({
           </section>
 
           <section className="mb-8">
-            <div className="mb-4 flex items-end justify-between gap-3">
-              <div>
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+              <div className="min-w-0">
                 <h3 className="text-xl font-semibold tracking-[-0.224px] text-[#1d1d1f]">
                   공통 지표
                 </h3>
@@ -707,8 +707,8 @@ export function WorkoutInputDialog({
           </section>
 
           <section className="rounded-[18px] bg-[#f5f5f7] p-5">
-            <div className="mb-4 flex items-end justify-between gap-3">
-              <div>
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+              <div className="min-w-0">
                 <h3 className="text-xl font-semibold tracking-[-0.224px] text-[#1d1d1f]">
                   {workOutType === "CYCLING"
                     ? "자전거 선택 입력"
@@ -741,27 +741,27 @@ export function WorkoutInputDialog({
           </section>
         </div>
 
-        <div className="flex items-center justify-between gap-4 border-t border-black/10 p-6">
-          <p className="min-w-0 flex-1 truncate text-sm text-[#7a7a7a]">
+        <div className="flex flex-col gap-3 border-t border-black/10 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-6">
+          <p className="min-w-0 text-sm leading-5 text-[#7a7a7a] sm:flex-1 sm:truncate">
             필수 입력 저장 후 피드백 생성 버튼으로 AI 코칭을 받을 수 있습니다.
           </p>
-          <div className="flex shrink-0 gap-2">
+          <div className="grid w-full shrink-0 grid-cols-3 gap-2 sm:flex sm:w-auto">
             <button
-              className="apple-secondary-pill whitespace-nowrap px-5 text-[#c43d2f]"
+              className="apple-secondary-pill whitespace-nowrap px-3 text-sm text-[#c43d2f] sm:px-5 sm:text-[17px]"
               onClick={onReset}
               type="button"
             >
               초기화
             </button>
             <button
-              className="apple-secondary-pill whitespace-nowrap px-5"
+              className="apple-secondary-pill whitespace-nowrap px-3 text-sm sm:px-5 sm:text-[17px]"
               onClick={onClose}
               type="button"
             >
               취소
             </button>
             <button
-              className="apple-primary-button whitespace-nowrap px-5"
+              className="apple-primary-button whitespace-nowrap px-3 text-sm sm:px-5 sm:text-[17px]"
               type="submit"
             >
               운동 저장

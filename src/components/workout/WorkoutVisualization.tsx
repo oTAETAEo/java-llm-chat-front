@@ -561,12 +561,12 @@ export function WorkoutVisualization({
   ].filter((metric) => metric.raw !== null);
 
   return (
-    <div className={`workout-visual-card w-full p-5 text-[#1d1d1f] ${className}`}>
+    <div className={`workout-visual-card w-full p-4 text-[#1d1d1f] sm:p-5 ${className}`}>
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div>
+        <div className="min-w-0">
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-[#7a7a7a]">입력된 운동</div>
           {workout.title ? (
-            <div className="mt-1 max-w-[28rem] truncate text-lg font-semibold tracking-[-0.224px] text-[#1d1d1f]">
+            <div className="mt-1 max-w-full truncate text-base font-semibold tracking-[-0.224px] text-[#1d1d1f] sm:max-w-[28rem] sm:text-lg">
               {workout.title}
             </div>
           ) : null}
@@ -582,7 +582,7 @@ export function WorkoutVisualization({
             ) : null}
           </div>
         </div>
-        <div className="grid gap-2 text-sm text-[#555555] sm:grid-cols-2 md:min-w-[280px]">
+        <div className="grid min-w-0 gap-2 text-sm text-[#555555] sm:grid-cols-2 md:min-w-[280px]">
           <div className="rounded-2xl bg-white/60 px-3 py-2 ring-1 ring-black/5">
             <span className="block text-xs font-semibold text-[#7a7a7a]">시작</span>
             {formatDateTime(workout.startedAt)}

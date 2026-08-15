@@ -375,13 +375,15 @@ function DashboardStat({
   icon: string;
 }) {
   return (
-    <div className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
+    <div className="min-w-0 rounded-lg border border-black/10 bg-white p-4 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
       <div className="mb-4 flex items-center justify-between gap-3">
         <span className="text-xs font-medium text-[#6b7280]">{label}</span>
         <Icon name={icon} className="h-5 w-5 text-[#2563eb]" />
       </div>
-      <div className="text-2xl font-semibold text-[#111827]">{value}</div>
-      <div className="mt-1 text-xs text-[#6b7280]">{subLabel}</div>
+      <div className="break-words text-xl font-semibold text-[#111827] sm:text-2xl">
+        {value}
+      </div>
+      <div className="mt-1 text-xs leading-5 text-[#6b7280]">{subLabel}</div>
     </div>
   );
 }
@@ -479,9 +481,9 @@ function TrendChart({
   const axisTicks = [maxValue, maxValue / 2, 0];
 
   return (
-    <div className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <div>
+    <div className="min-w-0 rounded-lg border border-black/10 bg-white p-4 shadow-[0_10px_24px_rgba(15,23,42,0.04)] sm:p-5">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h2 className="text-base font-semibold text-[#111827]">{title}</h2>
           <p className="mt-1 text-xs text-[#6b7280]">{description}</p>
         </div>
@@ -491,7 +493,7 @@ function TrendChart({
           최고 {highestValueLabel}
         </div>
       </div>
-      <div className="mx-auto grid w-full max-w-[540px] grid-cols-[36px_minmax(0,1fr)] gap-0">
+      <div className="mx-auto grid w-full max-w-[540px] grid-cols-[30px_minmax(0,1fr)] gap-0 sm:grid-cols-[36px_minmax(0,1fr)]">
         <div className="-translate-x-1.5 flex h-30 flex-col justify-between pb-2 text-right text-[10px] font-medium text-[#9ca3af]">
           {axisTicks.map((tick) => (
             <span className="whitespace-nowrap" key={`${title}-axis-${tick}`}>
@@ -501,7 +503,7 @@ function TrendChart({
             </span>
           ))}
         </div>
-        <div className="flex min-w-0 items-end justify-center gap-2 pb-1">
+        <div className="flex min-w-0 items-end justify-center gap-1 pb-1 sm:gap-2">
           {points.map((point, index) => (
             <div
               className="min-w-0 flex-1"
@@ -885,7 +887,7 @@ function WorkoutHistoryDashboardSkeleton() {
         ))}
       </div>
 
-      <div className="relative left-1/2 w-[min(1500px,calc(100vw-32px))] -translate-x-1/2">
+      <div className="relative w-full 2xl:left-1/2 2xl:w-[min(1500px,calc(100vw-32px))] 2xl:-translate-x-1/2">
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="flex min-w-0 flex-col gap-4">
             <div className="grid gap-4 lg:grid-cols-2">
@@ -936,7 +938,7 @@ function WorkoutHistoryDashboardSkeleton() {
                         <SkeletonLine className="mt-2 h-3 w-32" />
                       </div>
                     </div>
-                    <div className="grid w-full gap-2 sm:grid-cols-2 lg:w-[640px] lg:grid-cols-5">
+                    <div className="grid w-full min-w-0 gap-2 grid-cols-2 md:grid-cols-3 lg:max-w-[640px] lg:grid-cols-5">
                       {Array.from({ length: 5 }, (_, metricIndex) => (
                         <div
                           className="rounded-lg bg-[#f9fafb] px-3 py-2.5"
@@ -1473,19 +1475,21 @@ export function WorkoutHistoryDashboard({
   return (
     <section
       aria-busy={showInitialLoading}
-      className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 md:px-8"
+      className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-3 py-6 sm:px-4 sm:py-8 md:gap-6 md:px-8"
     >
       <div className="relative flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-medium text-[#2563eb]">운동 기록</p>
-          <h1 className="mt-1 text-3xl font-semibold text-[#111827]">
+          <h1 className="mt-1 text-2xl font-semibold text-[#111827] sm:text-3xl">
             나의 운동 통계
           </h1>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2 text-sm text-[#4b5563]">
+        <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
+          <div className="inline-flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-2 text-sm text-[#4b5563] md:flex-none">
             <Icon name="filter" className="h-4 w-4 text-[#2563eb]" />
-            {dateRangeLabel} · {selectedWorkoutTypeLabel}
+            <span className="min-w-0 truncate">
+              {dateRangeLabel} · {selectedWorkoutTypeLabel}
+            </span>
           </div>
           <button
             aria-expanded={filterOpen}
@@ -1602,7 +1606,7 @@ export function WorkoutHistoryDashboard({
         />
       </div>
 
-      <div className="relative left-1/2 w-[min(1500px,calc(100vw-32px))] -translate-x-1/2">
+      <div className="relative w-full 2xl:left-1/2 2xl:w-[min(1500px,calc(100vw-32px))] 2xl:-translate-x-1/2">
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="flex min-w-0 flex-col gap-4">
             <div className="grid gap-4 lg:grid-cols-2">
@@ -1674,7 +1678,7 @@ export function WorkoutHistoryDashboard({
                         <div className="h-4 w-52 rounded-full bg-[#f3f4f6]" />
                         <div className="mt-2 h-3 w-32 rounded-full bg-[#f3f4f6]" />
                       </div>
-                      <div className="grid w-full gap-2 sm:grid-cols-2 lg:w-[640px] lg:grid-cols-5">
+                      <div className="grid w-full min-w-0 grid-cols-2 gap-2 md:grid-cols-3 lg:max-w-[640px] lg:grid-cols-5">
                         {Array.from({ length: 5 }, (_, metricIndex) => (
                           <div
                             className="rounded-lg bg-[#f9fafb] px-3 py-2.5"
@@ -1722,7 +1726,7 @@ export function WorkoutHistoryDashboard({
                       role="button"
                       tabIndex={0}
                     >
-                      <div className="flex min-w-0 flex-1 items-center gap-4">
+                      <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center sm:gap-4">
                         <div
                           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${
                             item.workOutType === "RUNNING"
@@ -1764,7 +1768,7 @@ export function WorkoutHistoryDashboard({
                         </div>
                       </div>
 
-                      <div className="grid w-full gap-2 sm:grid-cols-2 lg:w-[640px] lg:grid-cols-5">
+                      <div className="grid w-full min-w-0 grid-cols-2 gap-2 md:grid-cols-3 lg:max-w-[640px] lg:grid-cols-5">
                         <HistoryMetric
                           label="거리"
                           value={`${formatNumber(item.distance)} km`}
@@ -1890,7 +1894,7 @@ export function WorkoutHistoryDashboard({
 
               <div className="mt-3 min-h-0 flex-1 overflow-y-auto pr-1">
                 {selectedFitFiles.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:grid-cols-3">
                     {selectedFitFiles.map((file, index) => (
                       <div
                         className="group relative flex min-h-36 flex-col items-center justify-center rounded-lg border border-black/10 bg-[#f9fafb] px-3 py-4 text-center transition hover:border-[#bfdbfe] hover:bg-[#eff6ff]"
@@ -1963,7 +1967,7 @@ export function WorkoutHistoryDashboard({
               </label>
             </div>
 
-            <div className="flex items-center justify-end gap-2 border-t border-black/10 px-5 py-4">
+            <div className="grid grid-cols-2 gap-2 border-t border-black/10 px-4 py-4 sm:flex sm:items-center sm:justify-end sm:px-5">
               <button
                 className="h-10 rounded-lg border border-black/10 bg-white px-4 text-sm font-medium text-[#374151] transition hover:bg-[#f9fafb] disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={savingFitFiles}

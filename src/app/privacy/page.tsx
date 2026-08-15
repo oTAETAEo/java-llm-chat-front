@@ -27,7 +27,7 @@ export default async function PrivacyPage() {
   const policy = await getPrivacyPolicy();
 
   return (
-    <main className="min-h-screen bg-[#f5f5f7] px-5 py-10 text-[#1d1d1f]">
+    <main className="min-h-dvh bg-[#f5f5f7] px-4 py-8 text-[#1d1d1f] sm:px-5 sm:py-10">
       <article className="mx-auto max-w-3xl">
         <header className="mb-8">
           <p className="text-sm text-[#7a7a7a]">버전 {policy.version}</p>

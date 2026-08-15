@@ -30,9 +30,9 @@ export function BottomActionBar({
   };
 
   return (
-    <div className="apple-frosted-bar absolute bottom-0 left-0 z-40 flex w-full flex-col items-center gap-6 p-6 md:pb-10">
-      <div className="flex w-full max-w-3xl items-center justify-center gap-2 px-6">
-        <button className="apple-secondary-pill relative w-28 shrink-0 whitespace-nowrap" onClick={onWorkoutInputClick} type="button">
+    <div className="apple-frosted-bar absolute bottom-0 left-0 z-40 flex w-full flex-col items-center gap-4 p-4 sm:gap-6 sm:p-6 md:pb-10">
+      <div className="grid w-full max-w-3xl grid-cols-[minmax(0,1fr)_6rem] items-center gap-2 sm:flex sm:justify-center sm:px-6">
+        <button className="apple-secondary-pill relative w-full whitespace-nowrap px-4 text-sm sm:w-28 sm:shrink-0 sm:text-[17px]" onClick={onWorkoutInputClick} type="button">
           <span
             aria-label={statusLabels[workoutInputStatus]}
             className={`absolute left-1 top-0 h-2.5 w-2.5 rounded-full ring-2 ring-white ${statusClassNames[workoutInputStatus]}`}
@@ -40,7 +40,7 @@ export function BottomActionBar({
           />
           운동 입력
         </button>
-        <button className="apple-primary-button mx-2 max-w-xs flex-1 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-60 sm:mx-4" disabled={generating} onClick={onGenerateFeedback} type="button">
+        <button className="apple-primary-button order-3 col-span-2 mx-0 w-full max-w-none flex-1 whitespace-nowrap text-sm disabled:cursor-not-allowed disabled:opacity-60 sm:order-none sm:mx-4 sm:max-w-xs sm:text-[17px]" disabled={generating} onClick={onGenerateFeedback} type="button">
           {generating ? "생성 중..." : hasWorkout ? "피드백 생성" : "피드백 생성"}
         </button>
         <TierDropdown tier={tier} onTierChange={onTierChange} />
