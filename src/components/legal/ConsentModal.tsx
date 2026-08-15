@@ -50,12 +50,16 @@ export function ConsentModal({
   onConfirm,
   serviceName = "Workout AI Coach",
   items = DEFAULT_ITEMS,
+  confirmLabel = "동의하고 계속",
+  confirmDisabled = false,
 }: {
   open: boolean;
   onClose: () => void;
   onConfirm: (result: ConsentResult) => void;
   serviceName?: string;
   items?: ConsentItem[];
+  confirmLabel?: string;
+  confirmDisabled?: boolean;
 }) {
   const [checked, setChecked] = useState<ConsentResult>({});
   const requiredItems = useMemo(() => items.filter((item) => item.required), [items]);
@@ -114,8 +118,8 @@ export function ConsentModal({
           <button className="apple-secondary-pill" onClick={onClose} type="button">
             취소
           </button>
-          <button className="apple-primary-button disabled:cursor-not-allowed disabled:opacity-50" disabled={!allRequiredChecked} onClick={() => onConfirm(checked)} type="button">
-            동의하고 계속
+          <button className="apple-primary-button disabled:cursor-not-allowed disabled:opacity-50" disabled={!allRequiredChecked || confirmDisabled} onClick={() => onConfirm(checked)} type="button">
+            {confirmLabel}
           </button>
         </div>
       </section>

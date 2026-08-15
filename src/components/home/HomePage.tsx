@@ -13,6 +13,7 @@ import type {
   WorkoutDetail,
 } from "@/lib/api";
 import {
+  agreeTerms,
   createFeedbackRoom,
   deleteFeedbackRoom,
   getFeedbackRoom,
@@ -41,6 +42,11 @@ import { DemoCtaCard } from "@/components/home/DemoCtaCard";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopAuthActions } from "@/components/layout/TopAuthActions";
+import {
+  ConsentModal,
+  type ConsentItem,
+  type ConsentResult,
+} from "@/components/legal/ConsentModal";
 import { WorkoutInputDialog } from "@/components/workout/WorkoutInputDialog";
 import { WorkoutHistoryDashboard } from "@/components/workout/WorkoutHistoryDashboard";
 import { WorkoutVisualization } from "@/components/workout/WorkoutVisualization";
@@ -144,6 +150,8 @@ export function HomePage({
   const [authChecked, setAuthChecked] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [termsAgreementSubmitting, setTermsAgreementSubmitting] =
+    useState(false);
   const [mainView, setMainView] = useState<MainView>(initialView ?? "chat");
   const [workoutInputOpen, setWorkoutInputOpen] = useState(false);
   const [workOutType, setWorkOutType] =
@@ -209,6 +217,15 @@ export function HomePage({
   const activeGeneratingFeedback =
     activeRoomGeneration?.status === "generating" ||
     (!activeRoomId && generatingFeedback);
+  const missingRequiredTerms = user?.missingRequiredTerms ?? [];
+  const termsAgreementRequired = Boolean(user?.requiresTermsAgreement);
+  const termsAgreementItems: ConsentItem[] = missingRequiredTerms.map((term) => ({
+    key: String(term.termsId),
+    label: `${term.title} v${term.version}`,
+    required: true,
+    href: term.contentUrl,
+    description: "변경되었거나 아직 동의하지 않은 필수 약관입니다.",
+  }));
   const generatingFeedbackRoomIds = Object.entries(feedbackGenerations)
     .filter(([, generation]) => generation.status === "generating")
     .map(([roomId]) => roomId);
@@ -804,6 +821,36 @@ export function HomePage({
     } finally {
       setUser(null);
       clearAuthenticatedChatState();
+    }
+  }
+
+  async function handleTermsAgreementConfirm(result: ConsentResult) {
+    const agreedTermsIds = missingRequiredTerms
+      .filter((term) => result[String(term.termsId)])
+      .map((term) => term.termsId);
+
+    if (agreedTermsIds.length < missingRequiredTerms.length) {
+      toast.error("필수 약관에 모두 동의해야 서비스를 계속 이용할 수 있습니다.");
+      return;
+    }
+
+    setTermsAgreementSubmitting(true);
+    try {
+      const status = await agreeTerms({ agreedTermsIds });
+      setUser((currentUser) =>
+        currentUser
+          ? {
+              ...currentUser,
+              requiresTermsAgreement: status.requiresTermsAgreement,
+              missingRequiredTerms: status.missingRequiredTerms,
+            }
+          : currentUser,
+      );
+      toast.success("약관 동의가 저장되었습니다.");
+    } catch (error) {
+      toast.error(resolveErrorMessage(error, "약관 동의 저장에 실패했습니다."));
+    } finally {
+      setTermsAgreementSubmitting(false);
     }
   }
 
@@ -1440,6 +1487,17 @@ export function HomePage({
           onAuthenticated={clearDemoStateForAuthenticatedUser}
         />
       ) : null}
+
+      <ConsentModal
+        open={termsAgreementRequired}
+        items={termsAgreementItems}
+        onClose={() => {
+          toast.info("필수 약관에 동의해야 서비스를 계속 이용할 수 있습니다.");
+        }}
+        onConfirm={handleTermsAgreementConfirm}
+        confirmLabel={termsAgreementSubmitting ? "저장 중..." : "동의하고 계속"}
+        confirmDisabled={termsAgreementSubmitting}
+      />
 
       {deleteTargetRoom ? (
         <DeleteRoomDialog

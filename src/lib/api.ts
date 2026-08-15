@@ -5,6 +5,8 @@ export type AuthUser = {
   memberId: number;
   email: string;
   nickname: string;
+  requiresTermsAgreement: boolean;
+  missingRequiredTerms: LegalTerm[];
 };
 
 export type LegalTerm = {
@@ -310,9 +312,16 @@ async function reissueAccessToken() {
 }
 
 function shouldAttemptReissue(response: Response, path: string) {
+  const reissueExcludedPaths = [
+    "/api/v1/auth/sign-up",
+    "/api/v1/auth/login",
+    "/api/v1/auth/reissue",
+    "/api/v1/auth/logout",
+  ];
+
   return (
     (response.status === 401 || response.status === 403) &&
-    !path.startsWith("/api/v1/auth/")
+    !reissueExcludedPaths.includes(path)
   );
 }
 
@@ -351,6 +360,22 @@ export function signUp(payload: {
 
 export function getSignUpTerms() {
   return apiFetch<LegalTerm[]>("/api/v1/auth/terms");
+}
+
+export type TermsAgreementStatus = {
+  requiresTermsAgreement: boolean;
+  missingRequiredTerms: LegalTerm[];
+};
+
+export function getTermsAgreementStatus() {
+  return apiFetch<TermsAgreementStatus>("/api/v1/auth/terms/agreements/status");
+}
+
+export function agreeTerms(payload: { agreedTermsIds: number[] }) {
+  return apiFetch<TermsAgreementStatus>("/api/v1/auth/terms/agreements", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export function login(payload: { email: string; password: string }) {
