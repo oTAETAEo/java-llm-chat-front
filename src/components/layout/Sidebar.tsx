@@ -296,12 +296,24 @@ export function Sidebar({
   );
 
   return (
-    <aside
-      className={`flex h-full shrink-0 flex-col overflow-hidden border-r border-outline-variant/30 bg-white text-on-surface shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out ${
-        open ? "w-[260px] opacity-100" : "w-0 opacity-0"
-      }`}
-      ref={sidebarMenuRef}
-    >
+    <>
+      {open ? (
+        <button
+          aria-label="사이드바 닫기"
+          className="fixed inset-0 z-[70] bg-black/20 backdrop-blur-[1px] lg:hidden"
+          onClick={onClose}
+          type="button"
+        />
+      ) : null}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-[80] flex h-dvh w-[min(82vw,280px)] max-w-[calc(100vw-24px)] shrink-0 flex-col overflow-hidden border-r border-outline-variant/30 bg-white text-on-surface shadow-[12px_0_40px_rgba(15,23,42,0.16)] transition-[transform,opacity,width] duration-300 ease-in-out lg:relative lg:inset-auto lg:z-auto lg:h-full lg:max-w-none lg:shadow-[4px_0_24px_rgba(0,0,0,0.02)] ${
+          open
+            ? "translate-x-0 opacity-100 lg:w-[260px]"
+            : "pointer-events-none -translate-x-full opacity-0 lg:w-0 lg:translate-x-0"
+        }`}
+        ref={sidebarMenuRef}
+      >
       <div className="flex h-full flex-1 flex-col overflow-hidden whitespace-nowrap">
         <div className="flex items-center justify-between p-4 pb-2">
           <div className="w-full" />
@@ -441,6 +453,7 @@ export function Sidebar({
           </button>
         )}
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

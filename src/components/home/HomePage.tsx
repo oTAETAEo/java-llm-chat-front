@@ -39,7 +39,6 @@ import { TimeSeparator } from "@/components/chat/TimeSeparator";
 import { Icon } from "@/components/common/Icon";
 import { DeleteRoomDialog } from "@/components/home/DeleteRoomDialog";
 import { DemoCtaCard } from "@/components/home/DemoCtaCard";
-import { MobileNav } from "@/components/layout/MobileNav";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopAuthActions } from "@/components/layout/TopAuthActions";
 import {
@@ -717,6 +716,9 @@ export function HomePage({
   }
 
   function handleNewChat() {
+    if (window.innerWidth < SIDEBAR_BREAKPOINT) {
+      setSidebarOpen(false);
+    }
     mainViewRef.current = "chat";
     setMainView("chat");
     if (!activeRoomId) {
@@ -1103,6 +1105,9 @@ export function HomePage({
   }, []);
 
   function handleRoomClick(roomId: string) {
+    if (window.innerWidth < SIDEBAR_BREAKPOINT) {
+      setSidebarOpen(false);
+    }
     if (roomId === activeRoomId) return;
 
     mainViewRef.current = "chat";
@@ -1459,8 +1464,6 @@ export function HomePage({
           />
         ) : null}
       </main>
-
-      <MobileNav />
 
       {workoutInputOpen ? (
         <WorkoutInputDialog
