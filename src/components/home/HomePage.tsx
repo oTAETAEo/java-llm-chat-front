@@ -1125,7 +1125,35 @@ export function HomePage({
     replaceUrl(`/c/${roomId}`);
   }
 
+  function applyOptimisticPinState(room: FeedbackRoomSummary) {
+    const nextRoom = { ...room, pinned: !room.pinned };
+
+    if (nextRoom.pinned) {
+      setPinnedRooms((rooms) => [
+        nextRoom,
+        ...rooms.filter((pinnedRoom) => pinnedRoom.roomId !== room.roomId),
+      ]);
+      setRecentRooms((rooms) =>
+        rooms.filter((recentRoom) => recentRoom.roomId !== room.roomId),
+      );
+      return;
+    }
+
+    setPinnedRooms((rooms) =>
+      rooms.filter((pinnedRoom) => pinnedRoom.roomId !== room.roomId),
+    );
+    setRecentRooms((rooms) => [
+      nextRoom,
+      ...rooms.filter((recentRoom) => recentRoom.roomId !== room.roomId),
+    ]);
+  }
+
   async function handleTogglePinRoom(room: FeedbackRoomSummary) {
+    const previousPinnedRooms = pinnedRooms;
+    const previousRecentRooms = recentRooms;
+
+    applyOptimisticPinState(room);
+
     try {
       if (room.pinned) {
         await unpinFeedbackRoom(room.roomId);
@@ -1134,6 +1162,8 @@ export function HomePage({
       }
       await refreshRoomLists();
     } catch (error) {
+      setPinnedRooms(previousPinnedRooms);
+      setRecentRooms(previousRecentRooms);
       toast.error(resolveErrorMessage(error, "고정 상태 변경에 실패했습니다."));
     }
   }
