@@ -150,6 +150,11 @@ type ApiErrorResponse = {
 
 const NETWORK_ERROR_MESSAGE =
   "일시적으로 연결이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.";
+const API_REQUEST_TIMEOUT_MS = 4000;
+
+export function isNetworkError(error: unknown) {
+  return error instanceof Error && error.message === NETWORK_ERROR_MESSAGE;
+}
 
 async function fetchWithCredentials(path: string, init?: RequestInit) {
   const headers = new Headers(init?.headers);
@@ -157,17 +162,32 @@ async function fetchWithCredentials(path: string, init?: RequestInit) {
     headers.set("Content-Type", "application/json");
   }
 
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(
+    () => controller.abort(),
+    API_REQUEST_TIMEOUT_MS,
+  );
+  init?.signal?.addEventListener("abort", () => controller.abort(), {
+    once: true,
+  });
+
   try {
     return await fetch(`${API_BASE_URL}${path}`, {
       ...init,
       credentials: "include",
       headers,
+      signal: controller.signal,
     });
   } catch (error) {
-    if (error instanceof TypeError) {
+    if (
+      error instanceof TypeError ||
+      (error instanceof DOMException && error.name === "AbortError")
+    ) {
       throw new Error(NETWORK_ERROR_MESSAGE);
     }
     throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 }
 
